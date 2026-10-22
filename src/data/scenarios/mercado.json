@@ -1,0 +1,45 @@
+{
+  "id": "mercado",
+  "name": { "es": "Mercado", "va": "Mercat" },
+  "tagline": { "es": "Fruta y verdura al peso", "va": "Fruita i verdura al pes" },
+  "icon": "🧺",
+  "kind": "basket",
+  "color": "#23784A",
+  "products": [
+    { "id": "naranjas", "name": {"es": "Naranjas", "va": "Taronges"}, "icon": "🍊", "category": "fruta", "unit": "kg", "price": [100, 220] },
+    { "id": "manzanas", "name": {"es": "Manzanas", "va": "Pomes"}, "icon": "🍎", "category": "fruta", "unit": "kg", "price": [150, 320] },
+    { "id": "peras", "name": {"es": "Peras", "va": "Peres"}, "icon": "🍐", "category": "fruta", "unit": "kg", "price": [160, 330] },
+    { "id": "platanos", "name": {"es": "Plátanos", "va": "Plàtans"}, "icon": "🍌", "category": "fruta", "unit": "kg", "price": [150, 290] },
+    { "id": "fresas", "name": {"es": "Fresas", "va": "Maduixes"}, "icon": "🍓", "category": "fruta", "unit": "kg", "price": [400, 800] },
+    { "id": "uvas", "name": {"es": "Uvas", "va": "Raïm"}, "icon": "🍇", "category": "fruta", "unit": "kg", "price": [250, 520] },
+    { "id": "cerezas", "name": {"es": "Cerezas", "va": "Cireres"}, "icon": "🍒", "category": "fruta", "unit": "kg", "price": [600, 1200] },
+    { "id": "melocotones", "name": {"es": "Melocotones", "va": "Bresquilles"}, "icon": "🍑", "category": "fruta", "unit": "kg", "price": [200, 420] },
+    { "id": "limones", "name": {"es": "Limones", "va": "Llimes"}, "icon": "🍋", "category": "fruta", "unit": "kg", "price": [150, 300] },
+    { "id": "sandia", "name": {"es": "Sandía", "va": "Meló d'Alger"}, "icon": "🍉", "category": "fruta", "unit": "kg", "price": [100, 240] },
+    { "id": "tomates", "name": {"es": "Tomates", "va": "Tomaques"}, "icon": "🍅", "category": "verdura", "unit": "kg", "price": [180, 400] },
+    { "id": "patatas", "name": {"es": "Patatas", "va": "Creïlles"}, "icon": "🥔", "category": "verdura", "unit": "kg", "price": [100, 200] },
+    { "id": "cebollas", "name": {"es": "Cebollas", "va": "Cebes"}, "icon": "🧅", "category": "verdura", "unit": "kg", "price": [100, 220] },
+    { "id": "pimientos", "name": {"es": "Pimientos", "va": "Pebrots"}, "icon": "🫑", "category": "verdura", "unit": "kg", "price": [200, 460] },
+    { "id": "zanahorias", "name": {"es": "Zanahorias", "va": "Carlotes"}, "icon": "🥕", "category": "verdura", "unit": "kg", "price": [100, 200] },
+    { "id": "berenjenas", "name": {"es": "Berenjenas", "va": "Albergínies"}, "icon": "🍆", "category": "verdura", "unit": "kg", "price": [180, 360] },
+    { "id": "pepinos", "name": {"es": "Pepinos", "va": "Cogombres"}, "icon": "🥒", "category": "verdura", "unit": "kg", "price": [150, 300] },
+    { "id": "brocoli", "name": {"es": "Brócoli", "va": "Bròquil"}, "icon": "🥦", "category": "verdura", "unit": "kg", "price": [200, 400] },
+    { "id": "lechuga", "name": {"es": "Lechuga", "va": "Enciam"}, "icon": "🥬", "category": "verdura", "unit": "u", "price": [70, 160] },
+    {
+      "id": "cabeza-de-ajos",
+      "name": { "es": "Cabeza de ajos", "va": "Cap d'alls" },
+      "icon": "🧄",
+      "category": "verdura",
+      "unit": "u",
+      "price": [40, 110]
+    },
+    {
+      "id": "huevos-de-corral",
+      "name": { "es": "Huevos de corral (6)", "va": "Ous de corral (6)" },
+      "icon": "🥚",
+      "category": "granja",
+      "unit": "u",
+      "price": [180, 330]
+    }
+  ]
+}

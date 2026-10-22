@@ -1,0 +1,67 @@
+{
+  "id": "supermercado",
+  "name": { "es": "Supermercado", "va": "Supermercat" },
+  "tagline": { "es": "La compra de cada día", "va": "La compra de cada dia" },
+  "icon": "🛒",
+  "kind": "basket",
+  "color": "#1E5AA8",
+  "products": [
+    { "id": "barra-de-pan", "name": {"es": "Barra de pan", "va": "Barra de pa"}, "icon": "🥖", "category": "panaderia", "unit": "u", "price": [70, 160] },
+    { "id": "leche", "name": {"es": "Leche", "va": "Llet"}, "icon": "🥛", "category": "lacteos", "unit": "u", "price": [85, 150] },
+    {
+      "id": "docena-de-huevos",
+      "name": { "es": "Docena de huevos", "va": "Dotzena d'ous" },
+      "icon": "🥚",
+      "category": "frescos",
+      "unit": "u",
+      "price": [180, 340]
+    },
+    { "id": "arroz", "name": {"es": "Arroz (1 kg)", "va": "Arròs (1 kg)"}, "icon": "🍚", "category": "despensa", "unit": "u", "price": [110, 280] },
+    { "id": "yogures", "name": {"es": "Yogures (4)", "va": "Iogurts (4)"}, "icon": "🥣", "category": "lacteos", "unit": "u", "price": [140, 320] },
+    { "id": "galletas", "name": {"es": "Galletas", "va": "Galetes"}, "icon": "🍪", "category": "despensa", "unit": "u", "price": [110, 290] },
+    {
+      "id": "aceite-de-oliva",
+      "name": { "es": "Aceite de oliva", "va": "Oli d'oliva" },
+      "icon": "🫒",
+      "category": "despensa",
+      "unit": "u",
+      "price": [450, 990]
+    },
+    { "id": "queso", "name": {"es": "Queso", "va": "Formatge"}, "icon": "🧀", "category": "frescos", "unit": "u", "price": [250, 850] },
+    { "id": "macarrones", "name": {"es": "Macarrones", "va": "Macarrons"}, "icon": "🍝", "category": "despensa", "unit": "u", "price": [80, 190] },
+    { "id": "agua", "name": {"es": "Agua (1,5 L)", "va": "Aigua (1,5 L)"}, "icon": "💧", "category": "bebida", "unit": "u", "price": [40, 110] },
+    {
+      "id": "zumo-de-naranja",
+      "name": { "es": "Zumo de naranja", "va": "Suc de taronja" },
+      "icon": "🧃",
+      "category": "bebida",
+      "unit": "u",
+      "price": [140, 330]
+    },
+    { "id": "chocolate", "name": {"es": "Chocolate", "va": "Xocolate"}, "icon": "🍫", "category": "despensa", "unit": "u", "price": [100, 260] },
+    { "id": "cereales", "name": {"es": "Cereales", "va": "Cereals"}, "icon": "🌾", "category": "despensa", "unit": "u", "price": [180, 390] },
+    { "id": "miel", "name": {"es": "Miel", "va": "Mel"}, "icon": "🍯", "category": "despensa", "unit": "u", "price": [300, 750] },
+    { "id": "pollo", "name": {"es": "Pollo", "va": "Pollastre"}, "icon": "🍗", "category": "frescos", "unit": "u", "price": [450, 1150] },
+    { "id": "merluza", "name": {"es": "Merluza", "va": "Lluç"}, "icon": "🐟", "category": "frescos", "unit": "u", "price": [600, 1500] },
+    {
+      "id": "jabon-de-manos",
+      "name": { "es": "Jabón de manos", "va": "Sabó de mans" },
+      "icon": "🧼",
+      "category": "hogar",
+      "unit": "u",
+      "price": [120, 310]
+    },
+    {
+      "id": "papel-higienico",
+      "name": { "es": "Papel higiénico", "va": "Paper higiènic" },
+      "icon": "🧻",
+      "category": "hogar",
+      "unit": "u",
+      "price": [200, 520]
+    },
+    { "id": "naranjas", "name": {"es": "Naranjas", "va": "Taronges"}, "icon": "🍊", "category": "fruta", "unit": "kg", "price": [100, 220] },
+    { "id": "manzanas", "name": {"es": "Manzanas", "va": "Pomes"}, "icon": "🍎", "category": "fruta", "unit": "kg", "price": [150, 320] },
+    { "id": "platanos", "name": {"es": "Plátanos", "va": "Plàtans"}, "icon": "🍌", "category": "fruta", "unit": "kg", "price": [150, 290] },
+    { "id": "tomates", "name": {"es": "Tomates", "va": "Tomaques"}, "icon": "🍅", "category": "fruta", "unit": "kg", "price": [180, 380] }
+  ]
+}

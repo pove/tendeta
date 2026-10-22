@@ -1,0 +1,34 @@
+/* Printable worksheets and adult summary. */
+@media print {
+  @page { size: A4; margin: 12mm; }
+  body { background: #fff !important; font-size: 11pt; }
+  body.has-print > *:not(#print-root) { display: none !important; }
+  body.has-print #print-root { display: block !important; }
+  .sheet-page { break-after: page; }
+  .sheet-page:last-child { break-after: auto; }
+}
+
+.sheet-title { font-size: 16pt; margin-bottom: 4mm; }
+.sheet-instructions { margin-bottom: 4mm; color: #333; }
+.ticket-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; }
+.paper-ticket { border: 1.5px dashed #555; border-radius: 3mm; padding: 3mm 4mm; break-inside: avoid; font-variant-numeric: tabular-nums; }
+.paper-ticket header { display: flex; justify-content: space-between; gap: 2mm; border-bottom: 1px dashed #999; padding-bottom: 1.5mm; margin-bottom: 1.5mm; font-size: 9.5pt; }
+.paper-ticket header strong { letter-spacing: 0.15em; }
+.pt-n { font-weight: 700; }
+.paper-ticket table { width: 100%; border-collapse: collapse; font-size: 10pt; }
+.paper-ticket td { padding: 0.6mm 0; vertical-align: top; }
+.paper-ticket td small { display: block; color: #555; }
+.paper-ticket .num { text-align: right; white-space: nowrap; }
+.pt-promo td { color: #a1301e; }
+.pt-total { display: flex; justify-content: space-between; font-size: 12pt; border-top: 1px dashed #999; margin-top: 1.5mm; padding-top: 1.5mm; }
+.pt-split { font-size: 10pt; }
+.pt-paid { display: flex; flex-wrap: wrap; align-items: center; gap: 1.5mm; margin-top: 1.5mm; }
+.pt-pieces { display: inline-flex; flex-wrap: wrap; gap: 1mm; align-items: center; }
+.pt-change { margin-top: 2mm; font-weight: 700; font-size: 12pt; }
+.pt-line { height: 9mm; border-bottom: 1.5px solid #333; margin-top: 2mm; position: relative; }
+.solutions { columns: 2; column-gap: 8mm; font-size: 10.5pt; }
+.solutions li { break-inside: avoid; margin-bottom: 2mm; }
+.sol-count { color: #444; }
+.cut-money { display: flex; flex-wrap: wrap; gap: 3mm; align-items: center; }
+.cut { border: 1px dashed #999; padding: 1.5mm; display: inline-flex; }
+#print-root .stats-block .bars { border: 1px solid #999; }

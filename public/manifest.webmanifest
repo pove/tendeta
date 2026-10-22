@@ -1,0 +1,21 @@
+{
+  "name": "Tendeta · Cobra y devuelve el cambio",
+  "short_name": "Tendeta",
+  "description": "Juego educativo para practicar el dinero y el cambio haciendo de cajero o cajera. Sin publicidad, sin cuentas y sin conexión.",
+  "lang": "es-ES",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "id": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#FFF6E9",
+  "theme_color": "#1E5AA8",
+  "categories": ["education", "kids", "games"],
+  "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

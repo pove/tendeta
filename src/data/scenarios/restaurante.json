@@ -1,0 +1,87 @@
+{
+  "id": "restaurante",
+  "name": { "es": "Restaurante", "va": "Restaurant" },
+  "tagline": { "es": "Menú del día o carta", "va": "Menú del dia o carta" },
+  "icon": "🍽️",
+  "kind": "table",
+  "color": "#C2412D",
+  "products": [
+    { "id": "menu-del-dia", "name": {"es": "Menú del día", "va": "Menú del dia"}, "icon": "🍽️", "category": "menu", "unit": "u", "price": [1000, 1500] },
+    {
+      "id": "ensalada-valenciana",
+      "name": { "es": "Ensalada valenciana", "va": "Amanida valenciana" },
+      "icon": "🥗",
+      "category": "primero",
+      "unit": "u",
+      "price": [550, 950]
+    },
+    { "id": "esgarraet", "name": {"es": "Esgarraet", "va": "Esgarraet"}, "icon": "🫑", "category": "primero", "unit": "u", "price": [600, 950] },
+    {
+      "id": "sopa-de-verduras",
+      "name": { "es": "Sopa de verduras", "va": "Sopa de verdures" },
+      "icon": "🍲",
+      "category": "primero",
+      "unit": "u",
+      "price": [450, 800]
+    },
+    {
+      "id": "paella-valenciana",
+      "name": { "es": "Paella valenciana", "va": "Paella valenciana" },
+      "icon": "🥘",
+      "category": "segundo",
+      "unit": "u",
+      "price": [1100, 1700]
+    },
+    { "id": "arroz-negro", "name": {"es": "Arroz negro", "va": "Arròs negre"}, "icon": "🦑", "category": "segundo", "unit": "u", "price": [1100, 1600] },
+    { "id": "fideua", "name": {"es": "Fideuá", "va": "Fideuà"}, "icon": "🍤", "category": "segundo", "unit": "u", "price": [1000, 1550] },
+    {
+      "id": "pollo-a-la-plancha",
+      "name": { "es": "Pollo a la plancha", "va": "Pollastre a la planxa" },
+      "icon": "🍗",
+      "category": "segundo",
+      "unit": "u",
+      "price": [800, 1300]
+    },
+    { "id": "bocadillo", "name": {"es": "Bocadillo", "va": "Entrepà"}, "icon": "🥪", "category": "tapa", "unit": "u", "price": [300, 650] },
+    {
+      "id": "patatas-bravas",
+      "name": { "es": "Patatas bravas", "va": "Creïlles braves" },
+      "icon": "🍟",
+      "category": "tapa",
+      "unit": "u",
+      "price": [350, 650]
+    },
+    { "id": "croquetas", "name": {"es": "Croquetas", "va": "Croquetes"}, "icon": "🧆", "category": "tapa", "unit": "u", "price": [400, 800] },
+    {
+      "id": "tostada-con-tomate",
+      "name": { "es": "Tostada con tomate", "va": "Torrada amb tomaca" },
+      "icon": "🍞",
+      "category": "tapa",
+      "unit": "u",
+      "price": [150, 350]
+    },
+    { "id": "flan", "name": {"es": "Flan", "va": "Flam"}, "icon": "🍮", "category": "postre", "unit": "u", "price": [250, 450] },
+    { "id": "helado", "name": {"es": "Helado", "va": "Gelat"}, "icon": "🍨", "category": "postre", "unit": "u", "price": [250, 450] },
+    {
+      "id": "fruta-del-tiempo",
+      "name": { "es": "Fruta del tiempo", "va": "Fruita del temps" },
+      "icon": "🍊",
+      "category": "postre",
+      "unit": "u",
+      "price": [200, 400]
+    },
+    {
+      "id": "coca-de-llanda",
+      "name": { "es": "Coca de llanda", "va": "Coca de llanda" },
+      "icon": "🍰",
+      "category": "postre",
+      "unit": "u",
+      "price": [250, 450]
+    },
+    { "id": "agua", "name": {"es": "Agua", "va": "Aigua"}, "icon": "💧", "category": "bebida", "unit": "u", "price": [120, 250] },
+    { "id": "refresco", "name": {"es": "Refresco", "va": "Refresc"}, "icon": "🥤", "category": "bebida", "unit": "u", "price": [180, 320] },
+    { "id": "zumo-natural", "name": {"es": "Zumo natural", "va": "Suc natural"}, "icon": "🧃", "category": "bebida", "unit": "u", "price": [200, 380] },
+    { "id": "cafe", "name": {"es": "Café", "va": "Café"}, "icon": "☕", "category": "bebida", "unit": "u", "price": [110, 200] },
+    { "id": "horchata", "name": {"es": "Horchata", "va": "Orxata"}, "icon": "🥛", "category": "bebida", "unit": "u", "price": [200, 350] }
+  ]
+}

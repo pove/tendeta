@@ -1,0 +1,97 @@
+{
+  "id": "horchateria",
+  "name": { "es": "Horchatería", "va": "Orxateria" },
+  "tagline": { "es": "Horchata, fartons y helados", "va": "Orxata, fartons i gelats" },
+  "icon": "🥛",
+  "kind": "basket",
+  "color": "#B85C0A",
+  "products": [
+    {
+      "id": "horchata",
+      "name": { "es": "Horchata", "va": "Orxata" },
+      "icon": "🥛",
+      "category": "bebida",
+      "unit": "u",
+      "sizes": [
+        { "id": "s", "name": {"es": "pequeña", "va": "xicoteta"}, "price": [170, 240] },
+        { "id": "m", "name": {"es": "mediana", "va": "mitjana"}, "price": [250, 330] },
+        { "id": "l", "name": {"es": "grande", "va": "gran"}, "price": [340, 450] }
+      ]
+    },
+    {
+      "id": "granizado-de-limon",
+      "name": { "es": "Granizado de limón", "va": "Granissat de llima" },
+      "icon": "🍋",
+      "category": "bebida",
+      "unit": "u",
+      "sizes": [
+        { "id": "s", "name": {"es": "pequeño", "va": "xicotet"}, "price": [160, 230] },
+        { "id": "m", "name": {"es": "mediano", "va": "mitjà"}, "price": [240, 320] },
+        { "id": "l", "name": {"es": "grande", "va": "gran"}, "price": [330, 430] }
+      ]
+    },
+    {
+      "id": "helado",
+      "name": { "es": "Helado", "va": "Gelat" },
+      "icon": "🍨",
+      "category": "helado",
+      "unit": "u",
+      "sizes": [
+        { "id": "1", "name": {"es": "1 bola", "va": "1 bola"}, "price": [170, 240] },
+        { "id": "2", "name": {"es": "2 bolas", "va": "2 boles"}, "price": [270, 360] },
+        { "id": "3", "name": {"es": "3 bolas", "va": "3 boles"}, "price": [370, 490] }
+      ]
+    },
+    { "id": "farton", "name": {"es": "Fartón", "va": "Farton"}, "icon": "🥖", "category": "dulce", "unit": "u", "price": [35, 70] },
+    {
+      "id": "bolsa-de-6-fartons",
+      "name": { "es": "Bolsa de 6 fartons", "va": "Bossa de 6 fartons" },
+      "icon": "🛍️",
+      "category": "dulce",
+      "unit": "u",
+      "price": [200, 350]
+    },
+    {
+      "id": "trozo-de-coca-de-llanda",
+      "name": { "es": "Trozo de coca de llanda", "va": "Tros de coca de llanda" },
+      "icon": "🍰",
+      "category": "dulce",
+      "unit": "u",
+      "price": [150, 290]
+    },
+    { "id": "bunuelos", "name": {"es": "Buñuelos (6)", "va": "Bunyols (6)"}, "icon": "🍩", "category": "dulce", "unit": "u", "price": [250, 460] },
+    {
+      "id": "cafe-del-tiempo",
+      "name": { "es": "Café del tiempo", "va": "Café del temps" },
+      "icon": "🧊",
+      "category": "bebida",
+      "unit": "u",
+      "price": [150, 250]
+    },
+    {
+      "id": "leche-merengada",
+      "name": { "es": "Leche merengada", "va": "Llet merengada" },
+      "icon": "🥤",
+      "category": "bebida",
+      "unit": "u",
+      "price": [200, 320]
+    },
+    {
+      "id": "taza-de-chocolate",
+      "name": { "es": "Taza de chocolate", "va": "Tassa de xocolata" },
+      "icon": "☕",
+      "category": "bebida",
+      "unit": "u",
+      "price": [220, 360]
+    },
+    { "id": "agua", "name": {"es": "Agua", "va": "Aigua"}, "icon": "💧", "category": "bebida", "unit": "u", "price": [80, 160] },
+    {
+      "id": "tableta-de-turron",
+      "name": { "es": "Tableta de turrón", "va": "Tauleta de torró" },
+      "icon": "🍬",
+      "category": "dulce",
+      "unit": "u",
+      "price": [300, 650]
+    }
+  ]
+}
