@@ -173,7 +173,7 @@ registerScreen('home', (root) => {
         langSwitch(),
       ),
       h('main', { class: 'home-main' }, h('h2', { class: 'section-title' }, profiles.length > 0 ? t('home.whoPlays') : t('home.firstTime')), list),
-      h('footer', { class: 'home-foot' }, adultBtn, h('p', { class: 'privacy-note' }, t('home.privacy'))),
+      h('footer', { class: 'home-foot' }, adultBtn),
     ),
   );
 });

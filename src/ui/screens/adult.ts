@@ -1,16 +1,25 @@
 import { ERROR_TYPES, profileStats, toCSV, type ProfileStats } from '../../core/stats';
 import type { LevelId } from '../../core/types';
 import { LEVEL_IDS, SCENARIOS } from '../../data';
-import { L, LANGS, t, type Key, type UiLang } from '../../i18n';
+import { getLang, L, LANGS, t, type Key, type UiLang } from '../../i18n';
 import { hasVoiceFor, speechAvailable } from '../../services/speech';
-import { store, type Settings } from '../../state/store';
+import { store, type Profile, type Settings } from '../../state/store';
 import { go, refresh, registerScreen, topbar } from '../app';
 import { openModal, toast } from '../components/modal';
-import { h } from '../dom';
-import { icon } from '../svg/icons';
+import { h, uid } from '../dom';
+import { icon, type IconName } from '../svg/icons';
 import { printSheets, printSummary, type MoneySize } from './printables';
 
 type Tab = 'stats' | 'settings' | 'sheets' | 'data';
+
+const TABS: { id: Tab; icon: IconName }[] = [
+  { id: 'stats', icon: 'chart' },
+  { id: 'settings', icon: 'gear' },
+  { id: 'sheets', icon: 'print' },
+  { id: 'data', icon: 'lock' },
+];
+
+// ---------- Files ----------
 
 function downloadText(filename: string, text: string, mime: string): void {
   try {
@@ -40,94 +49,121 @@ export function exportCSV(profileId: string | null): void {
   downloadText(`tendeta-${name}-${stamp}.csv`, csv, 'text/csv;charset=utf-8');
 }
 
-/** Single-series horizontal bars: one hue, values in text ink, table semantics underneath. */
-function bars(rows: { label: string; value: number; max: number; display: string }[], caption: string): HTMLElement {
+// ---------- Building blocks ----------
+
+/** A titled card that groups related content. */
+function card(title: string | null, ...children: (Node | null)[]): HTMLElement {
+  return h('section', { class: 'pcard' }, title ? h('h2', { class: 'pcard-title' }, title) : null, ...children.filter((c): c is Node => c !== null));
+}
+
+function iconButton(label: string, name: IconName, cls: string, onclick: () => void, testid?: string): HTMLButtonElement {
+  return h('button', { type: 'button', class: `btn ${cls}`, 'data-testid': testid, onclick }, h('span', { class: 'ico', html: icon(name, 20) }), h('span', null, label));
+}
+
+/** Visible options instead of a drop-down: every choice can be seen and tapped. */
+function segmented<T extends string | number>(opts: {
+  labelledBy: string;
+  options: { value: T; label: string }[];
+  value: T;
+  onChange: (v: T) => void;
+  testid?: string;
+}): HTMLElement & { setDisabled(d: boolean): void } {
+  const group = h('div', { class: 'seg', role: 'radiogroup', 'aria-labelledby': opts.labelledBy, 'data-testid': opts.testid }) as unknown as HTMLElement & {
+    setDisabled(d: boolean): void;
+  };
+  const buttons = opts.options.map((o) => {
+    const b = h(
+      'button',
+      {
+        type: 'button',
+        role: 'radio',
+        class: 'seg-option',
+        'aria-checked': String(o.value === opts.value),
+        dataset: { value: String(o.value) },
+        onclick: () => {
+          for (const x of buttons) x.setAttribute('aria-checked', String(x === b));
+          opts.onChange(o.value);
+        },
+      },
+      o.label,
+    );
+    return b;
+  });
+  group.append(...buttons);
+  group.addEventListener('keydown', (e) => {
+    const i = buttons.indexOf(document.activeElement as HTMLButtonElement);
+    if (i < 0) return;
+    const step = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0;
+    if (!step) return;
+    e.preventDefault();
+    const next = buttons[(i + step + buttons.length) % buttons.length]!;
+    next.focus();
+    next.click();
+  });
+  group.setDisabled = (d: boolean) => {
+    for (const b of buttons) b.disabled = d;
+    group.classList.toggle('is-disabled', d);
+  };
+  return group;
+}
+
+/** A settings row: label and help on the left, a switch on the right. */
+function switchRow(opts: { id: string; label: string; help?: string; checked: boolean; onChange: (v: boolean) => void }): HTMLElement {
+  const sw = h('button', {
+    type: 'button',
+    role: 'switch',
+    class: 'switch',
+    id: opts.id,
+    'aria-checked': String(opts.checked),
+    'data-testid': opts.id,
+    onclick: () => {
+      const next = sw.getAttribute('aria-checked') !== 'true';
+      sw.setAttribute('aria-checked', String(next));
+      opts.onChange(next);
+    },
+  });
   return h(
-    'table',
-    { class: 'bars' },
-    h('caption', null, caption),
-    h(
-      'tbody',
-      null,
-      ...rows.map((r) =>
-        h(
-          'tr',
-          { title: `${r.label}: ${r.display}` },
-          h('th', { scope: 'row' }, r.label),
-          h('td', null, h('span', { class: 'bar-track' }, h('span', { class: 'bar-fill', style: `--v:${r.max === 0 || r.value === 0 ? 0 : Math.max(0.02, r.value / r.max)}` })), h('span', { class: 'bar-value' }, r.display)),
-        ),
-      ),
-    ),
+    'div',
+    { class: 'srow' },
+    h('div', { class: 'srow-text' }, h('label', { for: opts.id, class: 'srow-label' }, opts.label), opts.help ? h('p', { class: 'srow-help' }, opts.help) : null),
+    sw,
   );
 }
 
-export function statsBlock(stats: ProfileStats): HTMLElement {
-  const tiles = h(
+/** A settings row whose control (option buttons) goes underneath the label. */
+function choiceRow(label: string, help: string | null, control: (labelId: string) => HTMLElement): HTMLElement {
+  const labelId = uid('lbl');
+  return h(
     'div',
-    { class: 'kpis' },
-    h('div', { class: 'kpi' }, h('strong', null, String(stats.problems)), h('span', null, t('stats.problems'))),
-    h('div', { class: 'kpi' }, h('strong', null, `${stats.firstTryPct} %`), h('span', null, t('stats.firstTry'))),
-    h('div', { class: 'kpi' }, h('strong', null, `${String(stats.avgTimeS).replace('.', ',')} s`), h('span', null, t('stats.avgTime'))),
-    h('div', { class: 'kpi' }, h('strong', null, stats.levels.length ? stats.levels.map((n) => t('play.levelChip', { n })).join(' · ') : '—'), h('span', null, t('stats.levels'))),
+    { class: 'srow is-stacked' },
+    h('div', { class: 'srow-text' }, h('p', { class: 'srow-label', id: labelId }, label), help ? h('p', { class: 'srow-help' }, help) : null),
+    control(labelId),
   );
-  const levelBars = bars(
-    stats.byLevel.map((l) => ({ label: t('play.levelChip', { n: l.level }), value: l.firstTryPct, max: 100, display: `${l.firstTryPct} % · ${l.problems}` })),
-    t('stats.byLevel'),
-  );
-  const maxErr = Math.max(0, ...ERROR_TYPES.map((e) => stats.errors[e]));
-  const errorBars = bars(
-    ERROR_TYPES.map((e) => ({ label: t(`err.${e}` as Key), value: stats.errors[e], max: maxErr, display: String(stats.errors[e]) })),
-    t('stats.errors'),
-  );
-  const borrow = h(
-    'p',
-    { class: 'help' },
-    t('stats.borrow', {
-      with: stats.borrowFirstTryPct === null ? '—' : `${stats.borrowFirstTryPct} %`,
-      without: stats.noBorrowFirstTryPct === null ? '—' : `${stats.noBorrowFirstTryPct} %`,
+}
+
+function settingSwitch(key: keyof Settings, label: string, help?: string): HTMLElement {
+  return switchRow({
+    id: `set-${key}`,
+    label,
+    help,
+    checked: store.settings[key] as boolean,
+    onChange: (v) => store.updateSettings({ [key]: v } as Partial<Settings>),
+  });
+}
+
+function settingChoice<K extends keyof Settings>(key: K, label: string, help: string | null, options: { value: Settings[K] & (string | number); label: string }[], after?: () => void): HTMLElement {
+  return choiceRow(label, help, (labelledBy) =>
+    segmented({
+      labelledBy,
+      options,
+      value: store.settings[key] as Settings[K] & (string | number),
+      testid: `set-${String(key)}`,
+      onChange: (v) => {
+        store.updateSettings({ [key]: v } as Partial<Settings>);
+        after?.();
+      },
     }),
   );
-  return h('div', { class: 'stats-block' }, tiles, h('div', { class: 'stats-charts' }, levelBars, errorBars), borrow);
-}
-
-function statsTab(): HTMLElement {
-  if (store.profiles.length === 0) return h('p', { class: 'empty-state' }, t('stats.none'));
-  let selected = store.profiles[0]!.id;
-  const detail = h('div', { class: 'stats-detail' });
-  const select = h(
-    'select',
-    { class: 'select', id: 'profile-select', 'aria-label': t('stats.profile') },
-    ...store.profiles.map((p) => h('option', { value: p.id }, `${p.avatar} ${p.alias}`)),
-  );
-  const renderDetail = (): void => {
-    const p = store.profiles.find((x) => x.id === selected)!;
-    const stats = profileStats(store.logFor(p.id));
-    detail.replaceChildren(
-      statsBlock(stats),
-      h(
-        'div',
-        { class: 'row-actions' },
-        h('button', { type: 'button', class: 'btn btn-ghost', html: `${icon('download', 20)}<span>${t('stats.csv')}</span>`, onclick: () => exportCSV(p.id) }),
-        h('button', { type: 'button', class: 'btn btn-ghost', html: `${icon('print', 20)}<span>${t('stats.print')}</span>`, onclick: () => printSummary(p, stats) }),
-        h('button', {
-          type: 'button',
-          class: 'btn btn-danger-ghost',
-          html: `${icon('trash', 20)}<span>${t('stats.deleteProfile')}</span>`,
-          onclick: () =>
-            confirmDialog(t('stats.deleteProfileTitle', { alias: p.alias }), t('stats.deleteProfileText'), () => {
-              store.deleteProfile(p.id);
-              refresh();
-            }),
-        }),
-      ),
-    );
-  };
-  select.addEventListener('change', () => {
-    selected = select.value;
-    renderDetail();
-  });
-  renderDetail();
-  return h('div', null, h('label', { class: 'field-label', for: 'profile-select' }, t('stats.profile')), select, detail);
 }
 
 function confirmDialog(title: string, text: string, onYes: () => void): void {
@@ -141,152 +177,326 @@ function confirmDialog(title: string, text: string, onYes: () => void): void {
   no.addEventListener('click', () => m.close());
 }
 
-function toggle(key: keyof Settings, label: string, help?: string): HTMLElement {
-  const id = `set-${key}`;
-  const value = store.settings[key] as boolean;
-  const sw = h('button', {
-    type: 'button',
-    role: 'switch',
-    class: 'switch',
-    id,
-    'aria-checked': String(value),
-    'data-testid': id,
-    onclick: () => {
-      const next = !(store.settings[key] as boolean);
-      store.updateSettings({ [key]: next } as Partial<Settings>);
-      sw.setAttribute('aria-checked', String(next));
-    },
-  });
-  return h('div', { class: 'setting' }, h('div', null, h('label', { for: id, class: 'setting-label' }, label), help ? h('p', { class: 'help' }, help) : null), sw);
+// ---------- Statistics ----------
+
+/** Single-series horizontal bars: one hue, values in text ink, table semantics underneath. */
+function bars(rows: { label: string; value: number; max: number; display: string }[], caption: string): HTMLElement {
+  return h(
+    'table',
+    { class: 'bars' },
+    h('caption', { class: 'visually-hidden' }, caption),
+    h(
+      'tbody',
+      null,
+      ...rows.map((r) =>
+        h(
+          'tr',
+          { title: `${r.label}: ${r.display}` },
+          h('th', { scope: 'row' }, r.label),
+          h(
+            'td',
+            null,
+            h('span', { class: 'bar-track' }, h('span', { class: 'bar-fill', style: `--v:${r.max === 0 || r.value === 0 ? 0 : Math.max(0.02, r.value / r.max)}` })),
+            h('span', { class: 'bar-value' }, r.display),
+          ),
+        ),
+      ),
+    ),
+  );
 }
 
-function choice<K extends keyof Settings>(key: K, label: string, options: { value: Settings[K]; label: string }[], onChange?: () => void): HTMLElement {
-  const id = `set-${String(key)}`;
-  const select = h('select', { class: 'select', id }, ...options.map((o) => h('option', { value: String(o.value), selected: o.value === store.settings[key] }, o.label)));
-  select.addEventListener('change', () => {
-    const opt = options.find((o) => String(o.value) === select.value)!;
-    store.updateSettings({ [key]: opt.value } as Partial<Settings>);
-    onChange?.();
-  });
-  return h('div', { class: 'setting' }, h('label', { for: id, class: 'setting-label' }, label), select);
+function shortDate(ts: number): string {
+  const d = new Date(ts);
+  const today = new Date();
+  if (d.toDateString() === today.toDateString()) return t('stats.today');
+  return d.toLocaleDateString(getLang() === 'va' ? 'ca-ES' : 'es-ES', { day: 'numeric', month: 'short' });
 }
+
+/** The statistics of one profile as cards (also used by the printable summary). */
+export function statsBlock(stats: ProfileStats): HTMLElement {
+  const kpi = (value: string, label: string): HTMLElement => h('div', { class: 'kpi' }, h('strong', null, value), h('span', null, label));
+  const summary = card(
+    t('stats.summary'),
+    h(
+      'div',
+      { class: 'kpis' },
+      kpi(String(stats.problems), t('stats.problems')),
+      kpi(`${stats.firstTryPct} %`, t('stats.firstTry')),
+      kpi(`${String(stats.avgTimeS).replace('.', ',')} s`, t('stats.avgTime')),
+      kpi(stats.lastPlayed ? shortDate(stats.lastPlayed) : '—', t('stats.lastPlayed')),
+    ),
+  );
+  const byLevel = card(
+    t('stats.byLevel'),
+    bars(
+      stats.byLevel.map((l) => ({ label: t('play.levelChip', { n: l.level }), value: l.firstTryPct, max: 100, display: `${l.firstTryPct} %` })),
+      t('stats.byLevel'),
+    ),
+    h('p', { class: 'srow-help' }, t('stats.byLevelHelp')),
+  );
+  const pct = (v: number | null): string => (v === null ? '—' : `${v} %`);
+  const borrow = card(
+    t('stats.borrowTitle'),
+    h('div', { class: 'kpis is-two' }, kpi(pct(stats.borrowFirstTryPct), t('stats.withBorrow')), kpi(pct(stats.noBorrowFirstTryPct), t('stats.withoutBorrow'))),
+  );
+  const errors = ERROR_TYPES.filter((e) => stats.errors[e] > 0).sort((a, b) => stats.errors[b] - stats.errors[a]);
+  const maxErr = Math.max(0, ...errors.map((e) => stats.errors[e]));
+  const errorCard = card(
+    t('stats.errors'),
+    errors.length > 0
+      ? bars(
+          errors.map((e) => ({ label: t(`err.${e}` as Key), value: stats.errors[e], max: maxErr, display: String(stats.errors[e]) })),
+          t('stats.errors'),
+        )
+      : h('p', { class: 'srow-help' }, t('stats.noErrors')),
+  );
+  return h('div', { class: 'stats-block' }, summary, h('div', { class: 'pcard-grid' }, byLevel, borrow), errorCard);
+}
+
+function profilePicker(selected: string, onPick: (p: Profile) => void): HTMLElement {
+  const labelId = uid('lbl');
+  const chips = store.profiles.map((p) =>
+    h(
+      'button',
+      {
+        type: 'button',
+        role: 'radio',
+        class: 'pchip',
+        'aria-checked': String(p.id === selected),
+        onclick: () => {
+          for (const c of chips) c.setAttribute('aria-checked', String(c === chip(p)));
+          onPick(p);
+        },
+      },
+      h('span', { class: 'pchip-avatar', 'aria-hidden': 'true' }, p.avatar),
+      h('span', null, p.alias),
+    ),
+  );
+  const chip = (p: Profile): HTMLButtonElement => chips[store.profiles.indexOf(p)]!;
+  return h('div', { class: 'picker' }, h('p', { class: 'picker-label', id: labelId }, t('stats.profile')), h('div', { class: 'pchips', role: 'radiogroup', 'aria-labelledby': labelId }, ...chips));
+}
+
+function statsTab(): HTMLElement {
+  if (store.profiles.length === 0) return card(null, h('p', { class: 'empty-state' }, t('stats.none')));
+  let selected = store.profiles[0]!.id;
+  const detail = h('div', { class: 'stats-detail' });
+  const render = (): void => {
+    const p = store.profiles.find((x) => x.id === selected)!;
+    const entries = store.logFor(p.id);
+    const stats = profileStats(entries);
+    const actions = card(
+      null,
+      h(
+        'div',
+        { class: 'action-grid' },
+        iconButton(t('stats.csv'), 'download', 'btn-ghost', () => exportCSV(p.id)),
+        iconButton(t('stats.print'), 'print', 'btn-ghost', () => printSummary(p, stats)),
+      ),
+      h(
+        'button',
+        {
+          type: 'button',
+          class: 'link-danger',
+          onclick: () =>
+            confirmDialog(t('stats.deleteProfileTitle', { alias: p.alias }), t('stats.deleteProfileText'), () => {
+              store.deleteProfile(p.id);
+              refresh();
+            }),
+        },
+        h('span', { class: 'ico', html: icon('trash', 18) }),
+        h('span', null, t('stats.deleteProfile')),
+      ),
+    );
+    detail.replaceChildren(entries.length === 0 ? card(null, h('p', { class: 'empty-state' }, t('stats.empty'))) : statsBlock(stats), actions);
+  };
+  render();
+  return h(
+    'div',
+    { class: 'tab-stack' },
+    profilePicker(selected, (p) => {
+      selected = p.id;
+      render();
+    }),
+    detail,
+  );
+}
+
+// ---------- Settings ----------
 
 function settingsTab(): HTMLElement {
   const voiceHelp = !speechAvailable() ? t('settings.voiceNone') : hasVoiceFor(store.settings.lang) ? t('settings.voiceHelp') : t('settings.voiceNoLang');
   return h(
     'div',
-    { class: 'settings' },
-    choice('lang', t('settings.lang'), LANGS.map((l) => ({ value: l.id as UiLang, label: l.label })), () => go('adult', { tab: 'settings' }, false)),
-    toggle('voice', t('settings.voice'), voiceHelp),
-    toggle('sound', t('settings.sound'), t('settings.soundHelp')),
-    choice('fontSize', t('settings.fontSize'), [
-      { value: 'm', label: t('settings.fontM') },
-      { value: 'l', label: t('settings.fontL') },
-      { value: 'xl', label: t('settings.fontXL') },
-    ]),
-    choice('roundLength', t('settings.roundLength'), [
-      { value: 5, label: t('settings.customers', { n: 5 }) },
-      { value: 10, label: t('settings.customers', { n: 10 }) },
-    ]),
-    toggle('calcTotal', t('settings.calcTotal'), t('settings.calcTotalHelp')),
-    choice('traySum', t('settings.traySum'), [
-      { value: 'auto', label: t('settings.traySumAuto') },
-      { value: 'show', label: t('settings.show') },
-      { value: 'hide', label: t('settings.hide') },
-    ]),
-    choice('estimation', t('settings.estimation'), [
-      { value: 'auto', label: t('settings.estimationAuto') },
-      { value: 'on', label: t('settings.estimationOn') },
-      { value: 'off', label: t('settings.off') },
-    ]),
-    toggle('expert', t('settings.expert'), t('settings.expertHelp')),
-    toggle('timer', t('settings.timer'), t('settings.timerHelp')),
-    toggle('breakReminder', t('settings.break'), t('settings.breakHelp')),
-    toggle('reduceMotion', t('settings.motion'), t('settings.motionHelp')),
-  );
-}
-
-function sheetsTab(): HTMLElement {
-  const scenario = h('select', { class: 'select', id: 'sheet-scenario' }, ...SCENARIOS.map((s) => h('option', { value: s.id }, `${s.icon} ${L(s.name)}`)));
-  const level = h('select', { class: 'select', id: 'sheet-level' }, ...LEVEL_IDS.map((l) => h('option', { value: String(l) }, t('play.levelChip', { n: l }))));
-  const count = h('select', { class: 'select', id: 'sheet-count' }, ...[6, 12, 18].map((n) => h('option', { value: String(n) }, String(n))));
-  const withTotal = h('input', { type: 'checkbox', id: 'sheet-total', class: 'check' });
-  const withMoney = h('input', { type: 'checkbox', id: 'sheet-money', class: 'check', checked: true });
-  const withSolutions = h('input', { type: 'checkbox', id: 'sheet-solutions', class: 'check', checked: true });
-  const moneySize = h(
-    'select',
-    { class: 'select', id: 'sheet-money-size' },
-    h('option', { value: 'classroom' }, t('sheets.sizeClassroom')),
-    h('option', { value: 'real' }, t('sheets.sizeReal')),
-  );
-  const field = (id: string, label: string, control: HTMLElement): HTMLElement => h('div', { class: 'setting' }, h('label', { for: id, class: 'setting-label' }, label), control);
-  const check = (id: string, label: string, control: HTMLElement): HTMLElement => h('label', { class: 'check-row', for: id }, control, h('span', null, label));
-  return h(
-    'div',
-    { class: 'sheets' },
-    h('p', { class: 'lead' }, t('sheets.intro')),
-    field('sheet-scenario', t('sheets.scenario'), scenario),
-    field('sheet-level', t('sheets.level'), level),
-    field('sheet-count', t('sheets.count'), count),
-    check('sheet-total', t('sheets.blankTotal'), withTotal),
-    check('sheet-money', t('sheets.money'), withMoney),
-    field('sheet-money-size', t('sheets.moneySize'), moneySize),
-    check('sheet-solutions', t('sheets.solutions'), withSolutions),
-    h(
-      'button',
-      {
-        type: 'button',
-        class: 'btn btn-go',
-        'data-testid': 'print-sheets',
-        html: `${icon('print', 22)}<span>${t('sheets.print')}</span>`,
-        onclick: () =>
-          printSheets({
-            scenarioId: scenario.value,
-            level: Number(level.value) as LevelId,
-            count: Number(count.value),
-            blankTotal: withTotal.checked,
-            money: withMoney.checked,
-            moneySize: moneySize.value as MoneySize,
-            solutions: withSolutions.checked,
-          }),
-      },
+    { class: 'tab-stack' },
+    card(
+      t('settings.groupLanguage'),
+      settingChoice('lang', t('settings.lang'), null, LANGS.map((l) => ({ value: l.id as UiLang, label: l.label })), () => go('adult', { tab: 'settings' }, false)),
+      settingSwitch('voice', t('settings.voice'), voiceHelp),
+      settingSwitch('sound', t('settings.sound'), t('settings.soundHelp')),
+    ),
+    card(
+      t('settings.groupGame'),
+      settingChoice('roundLength', t('settings.roundLength'), null, [
+        { value: 5, label: t('settings.customers', { n: 5 }) },
+        { value: 10, label: t('settings.customers', { n: 10 }) },
+      ]),
+      settingSwitch('calcTotal', t('settings.calcTotal'), t('settings.calcTotalHelp')),
+      settingChoice('traySum', t('settings.traySum'), t('settings.traySumHelp'), [
+        { value: 'auto', label: t('settings.byLevel') },
+        { value: 'show', label: t('settings.always') },
+        { value: 'hide', label: t('settings.never') },
+      ]),
+      settingChoice('estimation', t('settings.estimation'), t('settings.estimationHelp'), [
+        { value: 'auto', label: t('settings.byLevel') },
+        { value: 'on', label: t('settings.levels46') },
+        { value: 'off', label: t('settings.never') },
+      ]),
+      settingSwitch('expert', t('settings.expert'), t('settings.expertHelp')),
+      settingSwitch('timer', t('settings.timer'), t('settings.timerHelp')),
+    ),
+    card(
+      t('settings.groupComfort'),
+      settingChoice('fontSize', t('settings.fontSize'), null, [
+        { value: 'm', label: t('settings.fontM') },
+        { value: 'l', label: t('settings.fontL') },
+        { value: 'xl', label: t('settings.fontXL') },
+      ]),
+      settingSwitch('reduceMotion', t('settings.motion'), t('settings.motionHelp')),
+      settingSwitch('breakReminder', t('settings.break'), t('settings.breakHelp')),
     ),
   );
 }
 
-function dataTab(): HTMLElement {
+// ---------- Printable sheets ----------
+
+function sheetsTab(): HTMLElement {
+  const opts = {
+    scenarioId: SCENARIOS[0]!.id,
+    level: 1 as LevelId,
+    count: 6,
+    blankTotal: false,
+    money: true,
+    moneySize: 'classroom' as MoneySize,
+    solutions: true,
+  };
+  const scenarioLabel = uid('lbl');
+  const scenarios = h(
+    'div',
+    { class: 'scenario-picker', role: 'radiogroup', 'aria-labelledby': scenarioLabel, 'data-testid': 'sheet-scenario' },
+    ...SCENARIOS.map((s) =>
+      h(
+        'button',
+        {
+          type: 'button',
+          role: 'radio',
+          class: 'pchip is-wide',
+          'aria-checked': String(s.id === opts.scenarioId),
+          dataset: { value: s.id },
+          onclick: (e: Event) => {
+            opts.scenarioId = s.id;
+            scenarios.querySelectorAll('[role=radio]').forEach((b) => b.setAttribute('aria-checked', String(b === e.currentTarget)));
+          },
+        },
+        h('span', { class: 'pchip-avatar', 'aria-hidden': 'true' }, s.icon),
+        h('span', null, L(s.name)),
+      ),
+    ),
+  );
+  let moneySize: ReturnType<typeof segmented> | null = null;
+  const print = iconButton(t('sheets.print'), 'print', 'btn-go btn-block', () => printSheets({ ...opts }), 'print-sheets');
   return h(
     'div',
-    { class: 'data-tab' },
-    h('p', { class: 'lead' }, t('data.privacy')),
-    h('ul', { class: 'privacy-list' }, h('li', null, t('data.p1')), h('li', null, t('data.p2')), h('li', null, t('data.p3')), h('li', null, t('data.p4'))),
-    h('div', { class: 'row-actions' }, h('button', { type: 'button', class: 'btn btn-ghost', html: `${icon('download', 20)}<span>${t('data.exportAll')}</span>`, onclick: () => exportCSV(null) })),
+    { class: 'tab-stack' },
+    h('p', { class: 'tab-intro' }, t('sheets.intro')),
+    card(
+      t('sheets.ticketsTitle'),
+      h('div', { class: 'srow is-stacked' }, h('p', { class: 'srow-label', id: scenarioLabel }, t('sheets.scenario')), scenarios),
+      choiceRow(t('sheets.level'), null, (labelledBy) =>
+        segmented({
+          labelledBy,
+          testid: 'sheet-level',
+          options: LEVEL_IDS.map((l) => ({ value: l, label: String(l) })),
+          value: opts.level,
+          onChange: (v) => (opts.level = v),
+        }),
+      ),
+      choiceRow(t('sheets.count'), null, (labelledBy) =>
+        segmented({
+          labelledBy,
+          testid: 'sheet-count',
+          options: [6, 12, 18].map((n) => ({ value: n, label: String(n) })),
+          value: opts.count,
+          onChange: (v) => (opts.count = v),
+        }),
+      ),
+    ),
+    card(
+      t('sheets.optionsTitle'),
+      switchRow({ id: 'sheet-total', label: t('sheets.blankTotal'), checked: opts.blankTotal, onChange: (v) => (opts.blankTotal = v) }),
+      switchRow({ id: 'sheet-solutions', label: t('sheets.solutions'), checked: opts.solutions, onChange: (v) => (opts.solutions = v) }),
+      switchRow({
+        id: 'sheet-money',
+        label: t('sheets.money'),
+        checked: opts.money,
+        onChange: (v) => {
+          opts.money = v;
+          moneySize?.setDisabled(!v);
+        },
+      }),
+      choiceRow(t('sheets.moneySize'), t('sheets.moneySizeHelp'), (labelledBy) => {
+        moneySize = segmented({
+          labelledBy,
+          testid: 'sheet-money-size',
+          options: [
+            { value: 'classroom', label: t('sheets.sizeClassroom') },
+            { value: 'real', label: t('sheets.sizeReal') },
+          ],
+          value: opts.moneySize,
+          onChange: (v) => (opts.moneySize = v as MoneySize),
+        });
+        return moneySize;
+      }),
+    ),
+    print,
+  );
+}
+
+// ---------- Data and privacy ----------
+
+function dataTab(): HTMLElement {
+  const point = (text: string): HTMLElement => h('li', null, h('span', { class: 'ico check-ico', html: icon('check', 18) }), h('span', null, text));
+  return h(
+    'div',
+    { class: 'tab-stack' },
+    card(t('data.privacyTitle'), h('ul', { class: 'checklist' }, point(t('data.p1')), point(t('data.p2')), point(t('data.p3')), point(t('data.p4')))),
+    card(t('data.exportTitle'), h('p', { class: 'srow-help' }, t('data.exportHelp')), iconButton(t('data.exportAll'), 'download', 'btn-ghost btn-block', () => exportCSV(null))),
     h(
-      'div',
-      { class: 'danger-zone' },
-      h('h3', null, t('data.deleteTitle')),
-      h('p', { class: 'help' }, t('data.deleteHelp')),
-      h('button', {
-        type: 'button',
-        class: 'btn btn-danger',
-        'data-testid': 'delete-all',
-        html: `${icon('trash', 20)}<span>${t('data.deleteAll')}</span>`,
-        onclick: () =>
+      'section',
+      { class: 'pcard is-danger' },
+      h('h2', { class: 'pcard-title' }, t('data.deleteTitle')),
+      h('p', { class: 'srow-help' }, t('data.deleteHelp')),
+      iconButton(
+        t('data.deleteAll'),
+        'trash',
+        'btn-danger btn-block',
+        () =>
           confirmDialog(t('data.deleteTitle'), t('data.deleteConfirm'), () => {
             store.clearAll();
             toast(t('data.deleted'));
             go('home');
           }),
-      }),
+        'delete-all',
+      ),
     ),
   );
 }
 
+// ---------- Screen ----------
+
 registerScreen('adult', (root, params) => {
   let tab: Tab = (params.tab as Tab) ?? 'stats';
-  const tabs: Tab[] = ['stats', 'settings', 'sheets', 'data'];
-  const panel = h('div', { class: 'tab-panel', role: 'tabpanel', id: 'adult-panel', tabindex: '0' });
-  const buttons = tabs.map((id) =>
+  const panel = h('div', { class: 'tab-panel', role: 'tabpanel', id: 'adult-panel', tabindex: '-1' });
+  const buttons = TABS.map(({ id, icon: name }) =>
     h(
       'button',
       {
@@ -298,13 +508,14 @@ registerScreen('adult', (root, params) => {
         'data-testid': `tab-${id}`,
         onclick: () => select(id),
       },
-      t(`adult.tab.${id}` as Key),
+      h('span', { class: 'ico', html: icon(name, 22) }),
+      h('span', { class: 'tab-label' }, t(`adult.tab.${id}` as Key)),
     ),
   );
   const select = (id: Tab): void => {
     tab = id;
     buttons.forEach((b, i) => {
-      const on = tabs[i] === id;
+      const on = TABS[i]!.id === id;
       b.setAttribute('aria-selected', String(on));
       b.tabIndex = on ? 0 : -1;
     });
@@ -313,10 +524,10 @@ registerScreen('adult', (root, params) => {
   };
   const tablist = h('div', { class: 'tabs', role: 'tablist', 'aria-label': t('adult.title') }, ...buttons);
   tablist.addEventListener('keydown', (e) => {
-    const i = tabs.indexOf(tab);
+    const i = TABS.findIndex((x) => x.id === tab);
     if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-      const j = (i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length;
-      select(tabs[j]!);
+      const j = (i + (e.key === 'ArrowRight' ? 1 : TABS.length - 1)) % TABS.length;
+      select(TABS[j]!.id);
       buttons[j]!.focus();
     }
   });

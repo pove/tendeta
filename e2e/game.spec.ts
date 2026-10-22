@@ -117,7 +117,7 @@ test.describe('Tendeta', () => {
     const [a, b] = (q ?? '').match(/\d+/g)!.map(Number);
     await page.getByTestId('gate-input').fill(String(a! * b!));
     await page.getByTestId('gate-ok').click();
-    await expect(page.locator('.kpis')).toBeVisible();
+    await expect(page.locator('.kpis').first()).toBeVisible();
     await expect(page.locator('.kpi strong').first()).toHaveText('1');
     const download = page.waitForEvent('download');
     await page.getByRole('button', { name: /Exportar CSV/ }).click();

@@ -44,6 +44,27 @@ describe('translations', () => {
   });
 });
 
+describe('dictionary hygiene', () => {
+  it('every text in the dictionaries is used by the code (no dead translations)', () => {
+    const files: string[] = [];
+    const walk = (dir: string): void => {
+      for (const f of readdirSync(dir, { withFileTypes: true })) {
+        if (f.isDirectory()) walk(join(dir, f.name));
+        else if (f.name.endsWith('.ts')) files.push(join(dir, f.name));
+      }
+    };
+    walk(join(process.cwd(), 'src'));
+    const code = files.map((f) => readFileSync(f, 'utf8')).join(' ');
+    // Keys built at run time from a prefix (`level.${n}.desc`, `cat.${category}`…).
+    const dynamic = ['level.', 'mode.', 'cat.', 'err.', 'adult.tab.', 'praise.', 'thanks.'];
+    const unused = Object.keys(es).filter((k) => {
+      const base = k.endsWith('.m') ? k.slice(0, -2) : k; // masculine variants of cashier sentences
+      return !code.includes(`'${base}'`) && !dynamic.some((d) => k.startsWith(d));
+    });
+    expect(unused).toEqual([]);
+  });
+});
+
 describe('data files', () => {
   it('every scenario and product is bilingual, unique and without brands', () => {
     const ids = new Set<string>();
