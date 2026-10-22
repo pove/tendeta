@@ -36,6 +36,19 @@ export function t(key: Key, vars?: Record<string, string | number>): string {
   return text;
 }
 
+/** Who explains the cashier strategy: chosen at random to avoid gender stereotypes. */
+export type Cashier = 'f' | 'm';
+
+export function randomCashier(): Cashier {
+  return Math.random() < 0.5 ? 'f' : 'm';
+}
+
+/** Translate a sentence that mentions the cashier (`key` feminine, `key.m` masculine). */
+export function tc(key: Key, cashier: Cashier, vars?: Record<string, string | number>): string {
+  const variant = `${key}.m` as Key;
+  return t(cashier === 'm' && variant in DICTS.es ? variant : key, vars);
+}
+
 /** Pick the current language from a bilingual data object. */
 export function L(text: L10n | undefined): string {
   if (!text) return '';

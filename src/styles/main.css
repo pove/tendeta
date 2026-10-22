@@ -420,9 +420,14 @@ img, svg { max-width: 100%; }
 .tk-sep { border-top: 2px dashed var(--line); margin: 8px 0; }
 .tk-total { display: flex; justify-content: space-between; align-items: baseline; font-size: 1.45rem; font-weight: 700; }
 .tk-total-value { font-size: 1.7rem; }
-.tk-total.tk-flash { animation: pop 0.5s ease; }
+.tk-total.tk-flash { animation: total-flash 0.7s ease; }
+.tk-total-value.tk-tick { animation: tick 0.25s ease; }
+@keyframes tick { from { color: var(--blau); transform: translateY(-3px); } to { transform: none; } }
+@keyframes total-flash { 0% { background: var(--groc-clar); transform: scale(0.97); } 60% { transform: scale(1.03); } 100% { background: transparent; transform: none; } }
+.tk-total { border-radius: 10px; padding: 2px 6px; margin: 0 -6px; }
 .tk-split { display: flex; justify-content: space-between; gap: 10px; margin-top: 6px; padding: 8px 10px; background: var(--groc-clar); border-radius: 10px; font-weight: 700; }
 
+.given, .register, .ticket-slot { scroll-margin-top: 96px; }
 .given { display: grid; gap: 6px; padding: 10px 12px; border-radius: 14px; background: var(--fusta); border: 2px solid var(--fusta-fosc); min-height: 20px; }
 .given:empty { display: none; }
 .given.is-in { animation: pop 0.4s ease; }
@@ -713,10 +718,12 @@ img, svg { max-width: 100%; }
 .kpi strong { font-size: 1.6rem; }
 .kpi span { color: var(--tinta-suau); font-size: 0.92rem; }
 .stats-charts { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
-.bars { width: 100%; border-collapse: separate; border-spacing: 0 6px; background: var(--paper); border: 2px solid var(--line); border-radius: 14px; padding: 8px 12px; }
-.bars caption { text-align: left; font-weight: 700; padding: 0 0 4px; }
-.bars th { text-align: left; font-weight: 400; padding-right: 10px; white-space: nowrap; font-size: 0.95rem; }
-.bars td { width: 100%; display: flex; align-items: center; gap: 8px; }
+.bars { display: block; width: 100%; background: var(--paper); border: 2px solid var(--line); border-radius: 14px; padding: 10px 12px; }
+.bars caption { display: block; text-align: left; font-weight: 700; padding: 0 0 8px; }
+.bars tbody { display: grid; gap: 8px; }
+.bars tr { display: grid; grid-template-columns: minmax(7.5em, 40%) 1fr; gap: 10px; align-items: center; }
+.bars th { text-align: left; font-weight: 400; font-size: 0.95rem; line-height: 1.2; }
+.bars td { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .bar-track { flex: 1; height: 14px; }
 .bar-fill { display: block; height: 100%; width: calc(var(--v) * 100%); background: var(--blau); border-radius: 0 4px 4px 0; }
 .bar-value { min-width: 4.5em; text-align: right; font-variant-numeric: tabular-nums; font-size: 0.92rem; }

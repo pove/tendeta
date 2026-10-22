@@ -20,7 +20,7 @@ export function pieceName(value: Cents): string {
 export function pieceElement(value: Cents, scale = 0.78): HTMLElement {
   const { w, h: hh } = pieceSize(value, scale);
   const wrap = h('span', { class: `piece ${isBill(value) ? 'is-bill' : 'is-coin'}`, style: `--w:${w}px;--h:${hh}px` });
-  wrap.appendChild(fromHTML(pieceSvg(value, t('money.word'))));
+  wrap.appendChild(fromHTML(pieceSvg(value)));
   return wrap;
 }
 

@@ -3,7 +3,7 @@ import { hasBorrow } from '../src/core/borrow';
 import { generateProblem, type Tier } from '../src/core/generator';
 import { greedyChange, isComposable, sum } from '../src/core/money';
 import { paymentCandidates } from '../src/core/payment';
-import { buildPriceList, promoSaving } from '../src/core/pricing';
+import { buildPriceList, promoSaving, stepFor } from '../src/core/pricing';
 import { createRng } from '../src/core/rng';
 import type { ItemLine, Problem } from '../src/core/types';
 import { LEVEL_IDS, SCENARIOS, getLevel } from '../src/data';
@@ -24,7 +24,9 @@ function checkProblem(p: Problem): void {
   expect(p.total).toBeGreaterThan(0);
 
   for (const item of items) {
-    expect(item.unitPrice % (item.unit === 'kg' && level.weights ? Math.max(2, level.price.step) : level.price.step)).toBe(0);
+    const scenario = SCENARIOS.find((s) => s.id === p.scenarioId)!;
+    const product = scenario.products.find((x) => x.id === item.productId)!;
+    expect(item.unitPrice % stepFor(product, level, scenario)).toBe(0);
     expect(item.unitPrice).toBeGreaterThanOrEqual(level.price.min);
     expect(item.unitPrice).toBeLessThanOrEqual(level.price.max);
     if (item.unit === 'u') expect(item.qty).toBeLessThanOrEqual(Math.max(level.qtyMax, p.people));

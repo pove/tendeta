@@ -1,6 +1,6 @@
 import type { AnswerMethod, LevelId, Mode } from '../../core/types';
 import { LEVEL_IDS, SCENARIOS, getLevel } from '../../data';
-import { L, t, type Key } from '../../i18n';
+import { L, randomCashier, t, tc, type Key } from '../../i18n';
 import { store, type GameConfig } from '../../state/store';
 import { go, iconButton, registerScreen, topbar } from '../app';
 import { openModal } from '../components/modal';
@@ -168,7 +168,7 @@ registerScreen('setup', (root) => {
     if (firstTime) {
       const yes = h('button', { type: 'button', class: 'btn btn-go', 'data-testid': 'guided-yes' }, t('setup.guidedYes'));
       const no = h('button', { type: 'button', class: 'btn btn-ghost', 'data-testid': 'guided-no' }, t('setup.guidedNo'));
-      const m = openModal({ title: t('setup.firstTimeTitle'), body: h('p', null, t('setup.firstTimeText', { level: cfg.level })), actions: [yes, no] });
+      const m = openModal({ title: t('setup.firstTimeTitle'), body: h('p', null, tc('setup.firstTimeText', randomCashier(), { level: cfg.level })), actions: [yes, no] });
       yes.addEventListener('click', () => {
         m.close();
         go('play', { config: { ...cfg, mode: 'guided' }, then: cfg.mode, length });

@@ -4,6 +4,7 @@
   "tagline": { "es": "Menú del día o carta", "va": "Menú del dia o carta" },
   "icon": "🍽️",
   "kind": "table",
+  "minStep": 5,
   "color": "#C2412D",
   "products": [
     { "id": "menu-del-dia", "name": {"es": "Menú del día", "va": "Menú del dia"}, "icon": "🍽️", "category": "menu", "unit": "u", "price": [1000, 1500] },

@@ -76,6 +76,8 @@ export interface Scenario {
   kind: ScenarioKind;
   /** Accent colour for the scenario cards. */
   color: string;
+  /** Smallest price step in this shop (restaurants round to 5 cents). */
+  minStep?: Cents;
   products: Product[];
 }
 

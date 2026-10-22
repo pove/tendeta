@@ -2,9 +2,8 @@ import type { Cents } from '../../core/money';
 
 /**
  * Original, stylised play money. Deliberately NOT a reproduction of real euro
- * notes/coins: no architecture, flags, maps or bank initials; the word
- * JOC/JUEGO is always visible. Each value has its own colour AND shape so it
- * can be told apart without relying on colour.
+ * notes/coins: no architecture, flags, maps or bank initials. Each value has
+ * its own colour AND shape so it can be told apart without relying on colour.
  */
 
 interface BillStyle {
@@ -54,7 +53,7 @@ export function pieceSize(value: Cents, scale = 0.8): { w: number; h: number } {
     return { w: Math.round(b.w * scale), h: Math.round(b.h * scale) };
   }
   const c = COINS[value]!;
-  const d = Math.round(c.d * scale * 2.6);
+  const d = Math.round(c.d * scale * 2.85);
   return { w: d, h: d };
 }
 
@@ -80,7 +79,7 @@ function shapePath(shape: BillStyle['shape'], cx: number, cy: number, r: number)
   }
 }
 
-export function billSvg(value: Cents, word: string): string {
+export function billSvg(value: Cents): string {
   const b = BILLS[value];
   if (!b) throw new Error(`No bill of ${value}`);
   const { w, h } = b;
@@ -105,12 +104,12 @@ export function billSvg(value: Cents, word: string): string {
   <circle cx="${w * 0.8}" cy="${h * 0.48}" r="${h * 0.3}" fill="${b.base}" fill-opacity="0.13"/>
   <text x="${band + (w - band) * 0.47}" y="${h * 0.66}" text-anchor="middle" font-family="Atkinson Hyperlegible, system-ui, sans-serif" font-weight="700" font-size="${numSize}" fill="${b.ink}">${euros}</text>
   <text x="${w - 7}" y="${h * 0.24}" text-anchor="end" font-family="Atkinson Hyperlegible, system-ui, sans-serif" font-weight="700" font-size="${h * 0.17}" fill="${b.ink}">${euros} €</text>
-  <text x="${band + 6}" y="${h - 7}" font-family="Atkinson Hyperlegible, system-ui, sans-serif" font-weight="700" font-size="${h * 0.13}" letter-spacing="2" fill="${b.ink}" fill-opacity="0.85">${word}</text>
+  <text x="${band + 6}" y="${h - 7}" font-family="Atkinson Hyperlegible, system-ui, sans-serif" font-weight="700" font-size="${h * 0.13}" letter-spacing="2" fill="${b.ink}" fill-opacity="0.85">EUROS</text>
   <g fill="${b.ink}">${shapePath(b.shape, w - 12, h - 12, h * 0.07)}</g>
 </svg>`;
 }
 
-export function coinSvg(value: Cents, word: string): string {
+export function coinSvg(value: Cents): string {
   const c = COINS[value];
   if (!c) throw new Error(`No coin of ${value}`);
   const size = 100;
@@ -143,19 +142,18 @@ export function coinSvg(value: Cents, word: string): string {
       ? `<circle cx="${cx}" cy="${cx}" r="${r * 0.68}" fill="url(#${gid}i)" stroke="${inner.dark}" stroke-width="1.6"/>`
       : `<circle cx="${cx}" cy="${cx}" r="${r * 0.8}" fill="none" stroke="${outer.dark}" stroke-opacity="0.35" stroke-width="1.4"/>`;
   const textColor = inner.text;
-  const fontSize = label.length >= 2 ? 34 : 40;
+  const fontSize = label.length >= 2 ? 36 : 42;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" class="piece-svg" aria-hidden="true" focusable="false">
   <defs>
     <radialGradient id="${gid}o" cx="35%" cy="30%" r="80%"><stop offset="0" stop-color="${outer.light}"/><stop offset="0.6" stop-color="${outer.mid}"/><stop offset="1" stop-color="${outer.dark}"/></radialGradient>
     <radialGradient id="${gid}i" cx="35%" cy="30%" r="80%"><stop offset="0" stop-color="${inner.light}"/><stop offset="0.7" stop-color="${inner.mid}"/><stop offset="1" stop-color="${inner.dark}"/></radialGradient>
   </defs>
   ${body}${edge}${innerDisc}
-  <text x="${cx}" y="${cx + 10}" text-anchor="middle" font-family="Atkinson Hyperlegible, system-ui, sans-serif" font-weight="700" font-size="${fontSize}" fill="${textColor}">${label}</text>
-  <text x="${cx}" y="${cx + 30}" text-anchor="middle" font-family="Atkinson Hyperlegible, system-ui, sans-serif" font-weight="700" font-size="${isEuro ? 20 : 17}" fill="${textColor}">${unit}</text>
-  <text x="${cx}" y="${cx - 22}" text-anchor="middle" font-family="Atkinson Hyperlegible, system-ui, sans-serif" font-weight="700" font-size="7.5" letter-spacing="1.2" fill="${textColor}" fill-opacity="0.75">${word}</text>
+  <text x="${cx}" y="${cx + 4}" text-anchor="middle" font-family="Atkinson Hyperlegible, system-ui, sans-serif" font-weight="700" font-size="${fontSize}" fill="${textColor}">${label}</text>
+  <text x="${cx}" y="${cx + 29}" text-anchor="middle" font-family="Atkinson Hyperlegible, system-ui, sans-serif" font-weight="700" font-size="${isEuro ? 24 : 22}" fill="${textColor}">${unit}</text>
 </svg>`;
 }
 
-export function pieceSvg(value: Cents, word: string): string {
-  return isBill(value) ? billSvg(value, word) : coinSvg(value, word);
+export function pieceSvg(value: Cents): string {
+  return isBill(value) ? billSvg(value) : coinSvg(value);
 }

@@ -8,7 +8,7 @@ import { buildPriceList } from '../../core/pricing';
 import { createRng } from '../../core/rng';
 import type { LevelDef, Mode, Problem, Scenario } from '../../core/types';
 import { getLevel, getScenario } from '../../data';
-import { L, getLang, t, type Key } from '../../i18n';
+import { L, getLang, randomCashier, t, tc, type Key } from '../../i18n';
 import { play as sound } from '../../services/sound';
 import { say } from '../../services/speech';
 import * as wellbeing from '../../services/wellbeing';
@@ -81,6 +81,8 @@ registerScreen('play', (root, rawParams) => {
   let destroyed = false;
   let activeAnswer: { destroy(): void } | null = null;
   let offerHint = false;
+  // The cashier who models the strategy is a woman or a man at random.
+  const cashier = randomCashier();
 
   // ---------- Layout ----------
   const dots = h('ol', { class: 'progress-dots', 'aria-label': t('play.progress') });
@@ -176,6 +178,13 @@ registerScreen('play', (root, rawParams) => {
     activeAnswer?.destroy();
     activeAnswer = null;
     register.replaceChildren(...children.filter((c): c is Node => c !== null));
+  }
+
+  /** On narrow screens the till is below the ticket: bring the payment and the till into view. */
+  function focusTill(): void {
+    if (!window.matchMedia('(max-width: 859px)').matches) return;
+    const target = givenSlot.classList.contains('is-in') ? givenSlot : register;
+    target.scrollIntoView({ block: 'start', behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
   }
 
   // ---------- Round loop ----------
@@ -275,7 +284,7 @@ registerScreen('play', (root, rawParams) => {
       h(
         'div',
         { class: 'guided' },
-        h('h2', { class: 'panel-title' }, t('guided.title')),
+        h('h2', { class: 'panel-title' }, tc('guided.title', cashier)),
         h('p', { class: 'help' }, t('guided.intro')),
         lineBox,
         explain,
@@ -406,6 +415,7 @@ registerScreen('play', (root, rawParams) => {
         },
       });
       registerPanel(h('div', { class: 'answer' }, h('h2', { class: 'panel-title' }, t('total.title')), fb, kp.el));
+      if (window.matchMedia('(max-width: 859px)').matches) ticketSlot.scrollIntoView({ block: 'end', behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
       activeAnswer = kp;
     });
   }
@@ -431,6 +441,7 @@ registerScreen('play', (root, rawParams) => {
       const less = h('button', { type: 'button', class: 'btn btn-choice', 'data-testid': 'estimate-less', onclick: () => choose(false) }, '⬇ ', t('estimate.less', { amount }));
       const moreBtn = h('button', { type: 'button', class: 'btn btn-choice', 'data-testid': 'estimate-more', onclick: () => choose(true) }, '⬆ ', t('estimate.more', { amount }));
       const question = t('estimate.question', { amount });
+      setTimeout(focusTill, 50);
       registerPanel(h('div', { class: 'estimate' }, h('h2', { class: 'panel-title' }, t('estimate.title')), h('p', { class: 'estimate-q' }, question), h('div', { class: 'estimate-btns' }, less, moreBtn), fb));
       say(question);
     });
@@ -570,7 +581,7 @@ registerScreen('play', (root, rawParams) => {
       };
 
       let answerUi: KeypadView | MoneyTrayView;
-      const question = guided && scaffold === 2 ? t('answer.questionGuided') : t('answer.question');
+      const question = guided && scaffold === 2 ? tc('answer.questionGuided', cashier) : t('answer.question');
       if (config.method === 'keypad') {
         answerUi = keypad({ decimal: level.decimalKey, label: question, submitLabel: t('answer.submit'), onSubmit: (v) => onAnswer(v) });
       } else {
@@ -586,6 +597,7 @@ registerScreen('play', (root, rawParams) => {
       );
       registerPanel(container);
       activeAnswer = answerUi;
+      focusTill();
       say(t('say.question'), { interrupt: false });
     });
   }

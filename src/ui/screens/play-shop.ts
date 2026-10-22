@@ -1,4 +1,4 @@
-import { makeItem, problemFromBasket } from '../../core/generator';
+import { assembleTicket, makeItem, problemFromBasket } from '../../core/generator';
 import { formatEuro, type Cents } from '../../core/money';
 import { paymentCandidates, type PaymentCandidate } from '../../core/payment';
 import { lineAmount } from '../../core/pricing';
@@ -177,13 +177,13 @@ export function shoppingPhase(ctx: {
 
     checkout.addEventListener('click', () => {
       const items: ItemLine[] = [...basket.values()].map((l) => makeItem(l.entry, l.qty, l.grams));
-      const tmp = problemFromBasket(scenario, level, items, { pieces: [], paid: 0, trick: false });
-      const candidates = paymentCandidates(tmp.total, level);
+      const { total } = assembleTicket(items);
+      const candidates = paymentCandidates(total, level);
       if (candidates.length === 0) {
         toast(t('shop.noChange'));
         return;
       }
-      choosePayment(candidates, tmp.total, (payment) => {
+      choosePayment(candidates, total, (payment) => {
         const problem = problemFromBasket(scenario, level, items, payment, scenario.kind === 'table' ? Math.max(1, Math.min(4, Math.ceil(items.length / 2))) : 1);
         main.replaceChildren(...saved);
         resolve(problem);

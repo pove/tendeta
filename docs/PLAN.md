@@ -42,8 +42,8 @@ cómo se valida cada criterio de aceptación de la especificación.
 - **Icono de la app:** fondo azulejo, toldo festoneado y una moneda dorada con el símbolo € dibujado como trazo (no depende de fuentes). Versiones SVG, 192, 512, *maskable* 512 y *apple-touch* 180 generadas desde el SVG con Playwright (`scripts/gen-icons.mjs`).
 - **Personajes:** clientes SVG procedurales y diversos (6 tonos de piel, 8 peinados incl. hiyab y gorra, gafas, barba, canas), con 3 expresiones (neutral, contento, pensativo).
 - **Dinero propio:**
-  - Billetes con tamaño proporcional al valor, cifra grande, color propio **y** forma distintiva por valor (5 ● círculo, 10 ▲ triángulo, 20 ■ cuadrado, 50 ◆ rombo, 100 ★ estrella) para daltonismo, y la palabra **JOC/JUEGO**. Sin arquitectura, banderas, siglas ni mapas.
-  - Monedas con diámetro proporcional al real, cobre / dorado / bimetálicas, cifra grande y unidad (c / €).
+  - Billetes con tamaño proporcional al valor, cifra grande, color propio **y** forma distintiva por valor (5 ● círculo, 10 ▲ triángulo, 20 ■ cuadrado, 50 ◆ rombo, 100 ★ estrella) para daltonismo, y la palabra **EUROS**. Sin arquitectura, banderas, siglas ni mapas: el estilo deja claro que son de juego.
+  - Monedas con diámetro proporcional al real, cobre / dorado / bimetálicas, solo cifra grande y unidad (c / €), sin texto adicional para que se lean bien.
 
 ## 3. Arquitectura
 
@@ -162,10 +162,22 @@ Cero peticiones externas: fuentes, iconos y sonidos locales; sin cookies; datos 
 | Offline y sin scroll horizontal en móvil | e2e con `context.setOffline(true)` y comprobación de `scrollWidth` |
 | Panel adulto con estadísticas, CSV y fichas | Navegador + test de CSV |
 | Sin peticiones de red tras la carga | e2e registra todas las peticiones: solo mismo origen |
-| Dinero de diseño propio | SVG propios con «JOC/JUEGO» |
+| Dinero de diseño propio | SVG propios, estilizados, con «EUROS» en los billetes |
 | Tests en verde | `npm test` y `npm run e2e` |
 
 
 ## 8. Idioma principal
 
 El idioma del código fuemte es inglés. El principal de las claves, los elementos, productos, título, subtílulo, etc y UI es el Español, el segundo idioma que se puede elegir es el valenciano.
+
+## 9. Decisiones posteriores (revisión con el equipo)
+
+- **Sin estereotipos:** las frases sobre quien enseña la estrategia alternan al azar entre «la cajera» y «el cajero»
+  («la caixera» / «el caixer»): cada texto existe en femenino (`clave`) y masculino (`clave.m`).
+- **Billetes y monedas:** los billetes muestran «EUROS» en lugar de «JUEGO»; las monedas no llevan palabra para dejar
+  más espacio a la cifra y a «€» o «c».
+- **Ticket en vivo:** el TOTAL empieza en 0,00 € y se va actualizando al escanear cada producto (y baja con cada oferta),
+  como en una caja real; la parte de cada comensal aparece al final.
+- **Precios realistas por tienda:** cada escenario puede fijar un redondeo mínimo (`minStep`); restaurante y horchatería
+  usan múltiplos de 5 céntimos incluso en los niveles 5 y 6.
+

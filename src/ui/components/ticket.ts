@@ -55,7 +55,7 @@ export interface TicketView {
 export function ticketView(problem: Problem, shopName: string, opts: { hideTotal?: boolean } = {}): TicketView {
   const list = h('ol', { class: 'tk-lines', 'aria-label': t('ticket.lines') });
   const rows = problem.lines.map(lineRow);
-  const totalValue = h('span', { class: 'tk-total-value', 'data-testid': 'ticket-total' }, opts.hideTotal ? '?' : formatEuro(problem.total));
+  const totalValue = h('span', { class: 'tk-total-value', 'data-testid': 'ticket-total' }, opts.hideTotal ? '?' : formatEuro(0));
   const totalRow = h('div', { class: 'tk-total' }, h('span', null, t('ticket.total')), totalValue);
   const split = problem.split
     ? h(
@@ -72,22 +72,44 @@ export function ticketView(problem: Problem, shopName: string, opts: { hideTotal
     h('span', null, shopName),
     problem.people > 1 ? h('span', { class: 'tk-table' }, t('ticket.table', { people: problem.people })) : null,
   );
+  // The split-bill share only appears once the whole bill is known.
+  if (split) split.hidden = true;
   const el = h('section', { class: 'ticket', 'aria-label': t('ticket.label') }, head, list, h('div', { class: 'tk-sep', 'aria-hidden': 'true' }), totalRow, split);
+  const flash = (): void => {
+    totalRow.classList.remove('tk-flash');
+    void totalRow.offsetWidth;
+    totalRow.classList.add('tk-flash');
+  };
+  const revealTotal = (): void => {
+    totalValue.textContent = formatEuro(problem.total);
+    if (split && problem.split) {
+      (split.querySelector('strong') as HTMLElement).textContent = formatEuro(problem.split.share);
+      split.hidden = false;
+    }
+    flash();
+  };
   return {
     el,
     async scan(fast = false) {
-      for (const row of rows) {
+      // Like a real till: the total grows as each product is scanned.
+      let running = 0;
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i]!;
         list.appendChild(row);
         row.classList.add('tk-in');
+        running += problem.lines[i]!.amount;
+        if (!opts.hideTotal) {
+          totalValue.textContent = formatEuro(running);
+          totalValue.classList.remove('tk-tick');
+          void totalValue.offsetWidth;
+          totalValue.classList.add('tk-tick');
+        }
         play('beep');
         if (!fast) await wait(320);
       }
+      if (!opts.hideTotal) revealTotal();
     },
-    revealTotal() {
-      totalValue.textContent = formatEuro(problem.total);
-      if (split && problem.split) (split.querySelector('strong') as HTMLElement).textContent = formatEuro(problem.split.share);
-      totalRow.classList.add('tk-flash');
-    },
+    revealTotal,
   };
 }
 

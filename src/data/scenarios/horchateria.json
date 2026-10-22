@@ -4,6 +4,7 @@
   "tagline": { "es": "Horchata, fartons y helados", "va": "Orxata, fartons i gelats" },
   "icon": "🥛",
   "kind": "basket",
+  "minStep": 5,
   "color": "#B85C0A",
   "products": [
     {

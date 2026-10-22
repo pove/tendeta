@@ -16,10 +16,23 @@ export function drawPrice(range: [Cents, Cents], level: LevelDef, rng: Rng, step
   return first + step * rng.int(0, (last - first) / step);
 }
 
-/** Step for a product: kilo prices must be even so half a kilo has exact cents. */
-export function stepFor(product: Product, level: LevelDef): Cents {
-  const step = level.price.step;
-  if (product.unit === 'kg' && level.weights && step % 2 !== 0) return step * 2;
+function gcd(a: number, b: number): number {
+  return b === 0 ? a : gcd(b, a % b);
+}
+
+export function lcm(a: number, b: number): number {
+  return (a * b) / gcd(a, b);
+}
+
+/**
+ * Price step for a product: the level step, never below the shop's own
+ * rounding (restaurants use 5 cents), and even for kilo prices so half a
+ * kilo always has exact cents.
+ */
+export function stepFor(product: Product, level: LevelDef, scenario?: Pick<Scenario, 'minStep'>): Cents {
+  let step = level.price.step;
+  if (scenario?.minStep && scenario.minStep > step) step = lcm(step, scenario.minStep);
+  if (product.unit === 'kg' && level.weights) step = lcm(step, 2);
   return step;
 }
 
@@ -28,7 +41,7 @@ export function buildPriceList(scenario: Scenario, level: LevelDef, rng: Rng): P
   for (const product of scenario.products) {
     if (product.sizes && product.sizes.length > 0) {
       const drawn = product.sizes
-        .map((size) => ({ size, price: drawPrice(size.price, level, rng, stepFor(product, level)) }))
+        .map((size) => ({ size, price: drawPrice(size.price, level, rng, stepFor(product, level, scenario)) }))
         .filter((d): d is { size: (typeof d)['size']; price: Cents } => d.price !== null);
       // Bigger sizes always cost more: sort the drawn prices and drop duplicates.
       const prices = [...new Set(drawn.map((d) => d.price))].sort((a, b) => a - b);
@@ -37,16 +50,16 @@ export function buildPriceList(scenario: Scenario, level: LevelDef, rng: Rng): P
         entries.push({ key: `${product.id}:${size.id}`, product, size, price: prices[i]! });
       });
     } else if (product.price) {
-      const price = drawPrice(product.price, level, rng, stepFor(product, level));
+      const price = drawPrice(product.price, level, rng, stepFor(product, level, scenario));
       if (price !== null) entries.push({ key: product.id, product, price });
     }
   }
-  if (level.promos && scenario.kind === 'basket') assignPromos(entries, level, rng);
+  if (level.promos && scenario.kind === 'basket') assignPromos(entries, level, rng, scenario.minStep ?? 1);
   return { scenarioId: scenario.id, level: level.level, entries };
 }
 
 /** Level 6: a few offers (2×1, 3×2) and discounts with «friendly» percentages. */
-function assignPromos(entries: PriceEntry[], level: LevelDef, rng: Rng): void {
+function assignPromos(entries: PriceEntry[], level: LevelDef, rng: Rng, minStep: Cents): void {
   const eligible = rng.shuffle(entries.filter((e) => e.product.unit === 'u'));
   const plan: Promo[] = [
     { type: rng.pick(['2x1', '3x2'] as const) },
@@ -57,7 +70,7 @@ function assignPromos(entries: PriceEntry[], level: LevelDef, rng: Rng): void {
     const entry = eligible.shift();
     if (!entry) break;
     if (promo.type === 'pct') {
-      const divisor = promo.pct === 10 ? 10 : promo.pct === 25 ? 4 : 2;
+      const divisor = lcm(promo.pct === 10 ? 10 : promo.pct === 25 ? 4 : 2, Math.max(minStep, level.price.step));
       const rounded = Math.max(divisor, Math.round(entry.price / divisor) * divisor);
       if (rounded < level.price.min || rounded > level.price.max) continue;
       entry.price = rounded;

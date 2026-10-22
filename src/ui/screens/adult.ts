@@ -68,7 +68,7 @@ export function statsBlock(stats: ProfileStats): HTMLElement {
     h('div', { class: 'kpi' }, h('strong', null, String(stats.problems)), h('span', null, t('stats.problems'))),
     h('div', { class: 'kpi' }, h('strong', null, `${stats.firstTryPct} %`), h('span', null, t('stats.firstTry'))),
     h('div', { class: 'kpi' }, h('strong', null, `${String(stats.avgTimeS).replace('.', ',')} s`), h('span', null, t('stats.avgTime'))),
-    h('div', { class: 'kpi' }, h('strong', null, stats.levels.length ? stats.levels.join(', ') : '—'), h('span', null, t('stats.levels'))),
+    h('div', { class: 'kpi' }, h('strong', null, stats.levels.length ? stats.levels.map((n) => t('play.levelChip', { n })).join(' · ') : '—'), h('span', null, t('stats.levels'))),
   );
   const levelBars = bars(
     stats.byLevel.map((l) => ({ label: t('play.levelChip', { n: l.level }), value: l.firstTryPct, max: 100, display: `${l.firstTryPct} % · ${l.problems}` })),
