@@ -94,7 +94,6 @@ registerScreen('play', (root, rawParams) => {
         return h('li', { class: `dot ${cls}`, 'aria-label': t('play.customerN', { n: i + 1 }) });
       }),
     );
-    dots.setAttribute('aria-valuenow', String(results.length));
   };
   const timerEl = h('span', { class: 'timer-chip', 'aria-live': 'off' });
   let timerHandle: number | undefined;

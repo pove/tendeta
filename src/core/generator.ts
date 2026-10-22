@@ -166,7 +166,9 @@ function chooseQty(entry: PriceEntry, level: LevelDef, rng: Rng, room: Cents): n
   if (promo?.type === '2x1') return Math.min(level.qtyMax, rng.pick([2, 2, 3, 4]));
   if (promo?.type === '3x2') return Math.min(level.qtyMax, rng.pick([3, 3, 4, 6]));
   if (level.qtyMax > 1 && rng.chance(0.4)) {
-    const max = Math.min(level.qtyMax, Math.floor(room / entry.price));
+    // Realistic baskets: several units only of cheaper products.
+    const realistic = entry.price > 600 ? 2 : entry.price > 300 ? 3 : level.qtyMax;
+    const max = Math.min(level.qtyMax, realistic, Math.floor(room / entry.price));
     if (max >= 2) return rng.int(2, max);
   }
   return 1;
