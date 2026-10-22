@@ -19,7 +19,8 @@ export function pieceName(value: Cents): string {
 
 export function pieceElement(value: Cents, scale = 0.78): HTMLElement {
   const { w, h: hh } = pieceSize(value, scale);
-  const wrap = h('span', { class: `piece ${isBill(value) ? 'is-bill' : 'is-coin'}`, style: `--w:${w}px;--h:${hh}px` });
+  // Decorative: the button or list around it carries the accessible name.
+  const wrap = h('span', { class: `piece ${isBill(value) ? 'is-bill' : 'is-coin'}`, style: `--w:${w}px;--h:${hh}px`, 'aria-hidden': 'true' });
   wrap.appendChild(fromHTML(pieceSvg(value)));
   return wrap;
 }
@@ -39,7 +40,7 @@ export function moneyTray(opts: {
   const denoms = [...opts.denominations].sort((a, b) => b - a);
 
   const traySum = h('output', { class: 'tray-sum', 'aria-live': 'polite', 'data-testid': 'tray-sum' });
-  const trayArea = h('div', { class: 'tray-area', 'aria-label': t('money.tray'), role: 'list' });
+  const trayArea = h('div', { class: 'tray-area', 'aria-label': t('money.tray'), role: 'group' });
   const empty = h('p', { class: 'tray-empty' }, t('money.trayEmpty'));
   const submit = h('button', { type: 'button', class: 'btn btn-go', 'data-testid': 'submit-answer', onclick: () => !disabled && tray.length > 0 && opts.onSubmit([...tray]) }, opts.submitLabel);
   const clearBtn = h('button', { type: 'button', class: 'btn btn-ghost', onclick: () => clear() }, t('money.clear'));
@@ -53,7 +54,6 @@ export function moneyTray(opts: {
         {
           type: 'button',
           class: 'tray-stack',
-          role: 'listitem',
           'aria-label': `${count} × ${pieceName(value)}. ${t('money.removeOne')}`,
           dataset: { value: String(value) },
           onclick: () => remove(value),

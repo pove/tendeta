@@ -104,7 +104,8 @@ export function showSummary(opts: {
     h('div', { class: 'summary-actions' }, again, decorate, change),
   );
   opts.root.replaceChildren(h('div', { class: 'summary-wrap' }, card));
-  (card.querySelector('.summary-title') as HTMLElement).focus();
+  window.scrollTo({ top: 0 });
+  (card.querySelector('.summary-title') as HTMLElement).focus({ preventScroll: true });
   sound('star');
   void say(`${title} ${t('summary.stars', { n: stars })}`, { interrupt: true });
 }

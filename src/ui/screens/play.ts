@@ -192,7 +192,7 @@ registerScreen('play', (root, rawParams) => {
     renderDots();
     for (let i = 0; i < total && !destroyed; i++) {
       wellbeing.tick();
-      if (i > 0 && settings.breakReminder && wellbeing.shouldSuggestBreak()) {
+      if (settings.breakReminder && wellbeing.shouldSuggestBreak()) {
         const goOn = await breakReminder();
         if (!goOn || destroyed) return;
       }
@@ -608,7 +608,7 @@ registerScreen('play', (root, rawParams) => {
         } else {
           answerUi.setDisabled(true);
           hintBtn.hidden = true;
-          container.classList.add('is-resolved');
+          container.classList.add('is-resolved', 'is-failed');
           showSolution(problem, fb, check, nextLabel, () => finish(false));
         }
       };

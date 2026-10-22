@@ -18,8 +18,9 @@ export interface NumberLineOptions {
 export function numberLineSvg(price: Cents, paid: Cents, opts: NumberLineOptions): string {
   const steps = countUpSteps(price, paid);
   const n = steps.length;
-  const gap = 118;
-  const pad = 46;
+  // Compact spacing and large text so it stays readable when scaled down on phones.
+  const gap = 100;
+  const pad = 48;
   const width = pad * 2 + gap * Math.max(1, n);
   const y = 92;
   const x = (i: number): number => pad + i * gap;
@@ -31,7 +32,7 @@ export function numberLineSvg(price: Cents, paid: Cents, opts: NumberLineOptions
     const cls = i === 0 ? 'nl-start' : i === points.length - 1 ? 'nl-end' : 'nl-mid';
     parts.push(`<g class="nl-point ${cls} ${shown ? 'is-shown' : 'is-hidden'}" data-i="${i}">
       <line x1="${x(i)}" y1="${y - 9}" x2="${x(i)}" y2="${y + 9}" class="nl-tick"/>
-      <text x="${x(i)}" y="${y + 32}" text-anchor="middle" class="nl-label">${shown ? esc(formatShort(p)) : '?'}</text>
+      <text x="${x(i)}" y="${y + 34}" text-anchor="middle" class="nl-label">${shown ? esc(formatShort(p)) : '?'}</text>
     </g>`);
   });
   steps.forEach((s, i) => {
@@ -42,8 +43,8 @@ export function numberLineSvg(price: Cents, paid: Cents, opts: NumberLineOptions
     parts.push(`<g class="nl-jump ${shown ? 'is-shown' : 'is-hidden'}" data-i="${i}">
       <path d="M${x1} ${y - 10} Q ${mid} ${y - 70} ${x2} ${y - 10}" class="nl-arc"/>
       <path d="M${x2 - 9} ${y - 20} L${x2} ${y - 10} L${x2 - 11} ${y - 8}" class="nl-arrow"/>
-      <rect x="${mid - 38}" y="${y - 76}" width="76" height="28" rx="14" class="nl-badge"/>
-      <text x="${mid}" y="${y - 56}" text-anchor="middle" class="nl-add">${shown ? '+' + esc(formatShort(s.add)) : '?'}</text>
+      <rect x="${mid - 44}" y="${y - 80}" width="88" height="32" rx="16" class="nl-badge"/>
+      <text x="${mid}" y="${y - 57}" text-anchor="middle" class="nl-add">${shown ? '+' + esc(formatShort(s.add)) : '?'}</text>
     </g>`);
   });
   const label = opts.label ? ` aria-label="${esc(opts.label)}"` : ' aria-hidden="true"';

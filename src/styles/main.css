@@ -84,6 +84,8 @@ img, svg { max-width: 100%; }
 
 :focus { outline: none; }
 :focus-visible { outline: none; box-shadow: var(--focus); border-radius: 12px; }
+/* Headings get focus programmatically (for screen readers) and need no ring. */
+[tabindex='-1']:focus-visible { box-shadow: none; }
 
 #app { min-height: 100dvh; }
 #print-root { display: none; }
@@ -292,7 +294,7 @@ img, svg { max-width: 100%; }
 .step-title { display: flex; align-items: center; gap: 10px; font-size: 1.2rem; margin-bottom: 12px; }
 .step-n { display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--taronja); color: var(--tinta); font-size: 1.05rem; flex: none; }
 .choice-group { display: grid; gap: 10px; }
-.scenario-cards, .mode-cards { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+.scenario-cards, .mode-cards { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
 .method-cards { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
 .level-chips { grid-template-columns: repeat(6, minmax(0, 1fr)); }
 .choice {
@@ -458,6 +460,7 @@ img, svg { max-width: 100%; }
 .answer.is-resolved .tray-actions,
 .answer.is-resolved .btn-hint { display: none; }
 .answer.is-resolved .kp-display { min-height: 0; font-size: 1.6rem; }
+.answer.is-failed .kp-display, .answer.is-failed .tray { display: none; }
 
 /* Keypad */
 .keypad { display: grid; gap: 10px; }
@@ -582,16 +585,16 @@ img, svg { max-width: 100%; }
 
 /* Number line */
 .nl-box { width: 100%; overflow-x: auto; }
-.numberline { width: 100%; min-width: 280px; height: auto; display: block; max-height: 150px; }
+.numberline { width: 100%; min-width: 280px; height: auto; display: block; max-height: 160px; }
 .nl-axis { stroke: var(--tinta); stroke-width: 3; stroke-linecap: round; }
 .nl-tick { stroke: var(--tinta); stroke-width: 3; stroke-linecap: round; }
-.nl-label { font: 700 19px var(--font); fill: var(--tinta); }
+.nl-label { font: 700 22px var(--font); fill: var(--tinta); }
 .nl-start .nl-label { fill: var(--roig); }
 .nl-end .nl-label { fill: var(--verd); }
 .nl-arc { fill: none; stroke: var(--taronja-fosc); stroke-width: 3; stroke-linecap: round; }
 .nl-arrow { fill: none; stroke: var(--taronja-fosc); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
 .nl-badge { fill: var(--groc-clar); stroke: var(--taronja); stroke-width: 2; }
-.nl-add { font: 700 17px var(--font); fill: var(--tinta); }
+.nl-add { font: 700 20px var(--font); fill: var(--tinta); }
 .nl-jump.is-hidden .nl-arc { stroke-dasharray: 5 7; stroke: var(--tinta-suau); opacity: 0.5; }
 .nl-jump.is-hidden .nl-arrow { opacity: 0.4; stroke: var(--tinta-suau); }
 .nl-jump.is-hidden .nl-badge { fill: #fff; stroke: var(--line); }
@@ -643,6 +646,8 @@ img, svg { max-width: 100%; }
 .basket-name small { display: block; color: var(--tinta-suau); }
 .basket-empty { color: var(--tinta-suau); }
 .basket-info { font-size: 0.9rem; color: var(--tinta-suau); }
+.basket-need { font-size: 0.95rem; font-weight: 700; color: var(--taronja-fosc); text-align: center; }
+.basket-need:empty { display: none; }
 .weight-options { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
 .pay-options { display: grid; gap: 10px; }
 .pay-option {
@@ -663,7 +668,7 @@ img, svg { max-width: 100%; }
 /* Summary */
 .summary-wrap { grid-column: 1 / -1; display: grid; place-items: center; padding: 10px 0; }
 .summary { width: min(640px, 100%); background: var(--paper); border: 2px solid var(--line); border-radius: 24px; padding: 22px; box-shadow: var(--shadow); display: grid; gap: 16px; text-align: center; justify-items: center; }
-.summary-title { font-size: 2rem; color: var(--blau-fosc); }
+.summary-title { font-size: 2rem; color: var(--blau-fosc); scroll-margin-top: 120px; }
 .stars { display: flex; gap: 8px; }
 .star { color: var(--line); }
 .star .icon { width: 64px; height: 64px; }
@@ -711,7 +716,7 @@ img, svg { max-width: 100%; }
 
 /* Adult */
 .adult-main { width: min(1000px, 100%); margin: 0 auto; padding: 12px var(--gutter) 40px; }
-.tabs { display: flex; gap: 6px; overflow-x: auto; border-bottom: 2px solid var(--line); margin-bottom: 14px; }
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; overflow-x: auto; border-bottom: 2px solid var(--line); margin-bottom: 14px; }
 .tab { min-height: 48px; padding: 8px 16px; border: 0; background: transparent; font-weight: 700; color: var(--tinta-suau); border-bottom: 4px solid transparent; white-space: nowrap; }
 .tab[aria-selected='true'] { color: var(--blau-fosc); border-bottom-color: var(--blau); }
 .tab-panel { display: grid; gap: 14px; }
@@ -781,6 +786,28 @@ img, svg { max-width: 100%; }
 @media (max-height: 760px) and (min-width: 860px) {
   .kp-key { min-height: 52px; font-size: 1.5rem; }
   .kp-display { min-height: 60px; }
+}
+
+/* Phones: compact setup cards (two per row) */
+@media (max-width: 520px) {
+  .setup-step { padding: 12px; }
+  .choice { padding: 12px 6px; }
+  .choice-sub { font-size: 0.8rem; }
+}
+
+/* Free shop on phones: the basket stays pinned at the bottom of the screen */
+@media (max-width: 859px) {
+  .basket {
+    position: sticky;
+    bottom: 8px;
+    z-index: 5;
+    max-height: 42dvh;
+    overflow-y: auto;
+    box-shadow: 0 -6px 24px rgba(43, 35, 64, 0.18);
+    gap: 6px;
+    padding: 10px 12px;
+  }
+  .basket .basket-info { display: none; }
 }
 
 /* Small phones */

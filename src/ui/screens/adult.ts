@@ -54,7 +54,7 @@ function bars(rows: { label: string; value: number; max: number; display: string
           'tr',
           { title: `${r.label}: ${r.display}` },
           h('th', { scope: 'row' }, r.label),
-          h('td', null, h('span', { class: 'bar-track' }, h('span', { class: 'bar-fill', style: `--v:${r.max === 0 ? 0 : Math.max(0.02, r.value / r.max)}` })), h('span', { class: 'bar-value' }, r.display)),
+          h('td', null, h('span', { class: 'bar-track' }, h('span', { class: 'bar-fill', style: `--v:${r.max === 0 || r.value === 0 ? 0 : Math.max(0.02, r.value / r.max)}` })), h('span', { class: 'bar-value' }, r.display)),
         ),
       ),
     ),

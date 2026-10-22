@@ -1,4 +1,4 @@
-import { formatEuro, type Cents } from '../../core/money';
+import { formatEuro } from '../../core/money';
 import type { ItemLine, Problem, PromoLine, TicketLine } from '../../core/types';
 import { L, t } from '../../i18n';
 import { play } from '../../services/sound';
@@ -111,8 +111,4 @@ export function ticketView(problem: Problem, shopName: string, opts: { hideTotal
     },
     revealTotal,
   };
-}
-
-export function dueLabel(problem: Problem): Cents {
-  return problem.due;
 }

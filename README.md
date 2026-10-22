@@ -55,8 +55,9 @@ npm test
 ```
 
 Tests end-to-end (Playwright) en tamaño móvil y tableta: rondas completas con teclado y con dinero, tienda libre,
-nivel 6, práctica guiada, panel adulto, valenciano, ausencia de scroll horizontal, ninguna petición externa y
-funcionamiento sin conexión.
+nivel 6, práctica guiada, panel adulto, valenciano, ausencia de scroll horizontal, ninguna petición externa,
+funcionamiento sin conexión, lectura en voz alta (orden, sin cortes y contenido, con una voz simulada) y una
+**auditoría de accesibilidad WCAG 2.2 AA con axe** de todas las pantallas.
 
 ```bash
 npx playwright install chromium

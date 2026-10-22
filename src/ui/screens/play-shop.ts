@@ -60,6 +60,7 @@ export function shoppingPhase(ctx: {
 
     const basketList = h('ul', { class: 'basket-list', 'aria-live': 'polite' });
     const basketInfo = h('p', { class: 'basket-info' });
+    const needMore = h('p', { class: 'basket-need', 'aria-live': 'polite' });
     const checkout = h('button', { type: 'button', class: 'btn btn-go', 'data-testid': 'checkout' }, t('shop.checkout'), h('span', { html: icon('next', 22) }));
     const shelf = h('div', { class: 'shelf' });
     const cards = new Map<string, HTMLButtonElement>();
@@ -99,7 +100,8 @@ export function shoppingPhase(ctx: {
       if (basket.size === 0) basketList.appendChild(h('li', { class: 'basket-empty' }, t('shop.empty')));
       basketInfo.textContent = t('shop.limits', { lines: maxLines, max: formatEuro(maxTotal, { decimals: 'auto' }) });
       checkout.disabled = basket.size < level.lines[0];
-      checkout.title = checkout.disabled ? t('shop.needMore', { n: level.lines[0] }) : '';
+      // Say why the till is not available yet (visible text, not just a tooltip).
+      needMore.textContent = checkout.disabled ? t('shop.needMore', { n: level.lines[0] }) : '';
       for (const [key, btn] of cards) {
         const entry = priceList.entries.find((e) => e.key === key)!;
         const count = basket.get(key);
@@ -162,7 +164,8 @@ export function shoppingPhase(ctx: {
         const badge = promoBadge(e);
         const card = h(
           'button',
-          { type: 'button', class: 'product-card', 'data-testid': 'product', onclick: () => addEntry(e), 'aria-label': `${entryTitle(e)}, ${priceTag(e)}` },
+          // The visible name, price and offer form the accessible name (the emoji is decorative).
+          { type: 'button', class: 'product-card', 'data-testid': 'product', onclick: () => addEntry(e) },
           h('span', { class: 'product-icon', 'aria-hidden': 'true' }, e.product.icon),
           h('span', { class: 'product-name' }, entryTitle(e)),
           h('span', { class: 'price-tag' }, priceTag(e)),
@@ -194,7 +197,7 @@ export function shoppingPhase(ctx: {
       'div',
       { class: 'shop-view' },
       h('section', { class: 'shelf-wrap', 'aria-label': t('shop.shelf') }, h('h2', { class: 'panel-title' }, scenario.kind === 'table' ? t('shop.titleTable') : t('shop.titleBasket')), shelf),
-      h('aside', { class: 'basket', 'aria-label': t('shop.basket') }, h('h2', { class: 'panel-title' }, h('span', { html: icon('basket', 22) }), t('shop.basket')), basketList, basketInfo, checkout),
+      h('aside', { class: 'basket', 'aria-label': t('shop.basket') }, h('h2', { class: 'panel-title' }, h('span', { html: icon('basket', 22) }), t('shop.basket')), basketList, basketInfo, needMore, checkout),
     );
     main.replaceChildren(view);
     render();

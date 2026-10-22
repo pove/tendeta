@@ -1,4 +1,4 @@
-import { formatEuro, parseEuro, type Cents } from '../../core/money';
+import { parseEuro, type Cents } from '../../core/money';
 import { t } from '../../i18n';
 import { play } from '../../services/sound';
 import { h } from '../dom';
@@ -92,8 +92,4 @@ export function keypad(opts: { decimal: boolean; label: string; submitLabel: str
       document.removeEventListener('keydown', onKey);
     },
   };
-}
-
-export function formatTyped(value: Cents): string {
-  return formatEuro(value);
 }
