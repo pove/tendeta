@@ -44,10 +44,20 @@ jobs:
           grep -q "tendeta-" dist/sw.js
           node -e "const m=JSON.parse(require('fs').readFileSync('dist/manifest.webmanifest','utf8')); if (m.start_url !== './' || m.scope !== './' || m.display !== 'standalone') process.exit(1)"
 
-      - name: Instalar Chromium para Playwright
-        run: npx playwright install --with-deps chromium
+      # The headless shell is all the tests need; the Ubuntu runner image already
+      # has its system libraries (it ships Chrome), so no apt-get is required.
+      - name: Caché del navegador de Playwright
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+      - name: Instalar Chromium (headless shell) para Playwright
+        timeout-minutes: 5
+        run: npx playwright install chromium --only-shell
 
       - name: Tests end-to-end (móvil y tableta)
+        timeout-minutes: 10
         run: npm run e2e
         env:
           CI: 'true'

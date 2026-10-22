@@ -137,7 +137,7 @@ registerScreen('home', (root) => {
   );
 
   // Adult access: tap opens the multiplication gate; holding 3 s opens directly.
-  const adultBtn = h('button', { type: 'button', class: 'adult-btn', 'data-testid': 'adult-btn' }, h('span', { html: icon('gear', 20) }), h('span', null, t('home.adults')));
+  const adultBtn = h('button', { type: 'button', class: 'adult-btn', 'data-testid': 'adult-btn' }, h('span', { class: 'ico', html: icon('gear', 20) }), h('span', null, t('home.adults')));
   let holdTimer: number | undefined;
   let held = false;
   adultBtn.addEventListener('pointerdown', () => {

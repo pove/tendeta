@@ -651,7 +651,7 @@ registerScreen('play', (root, rawParams) => {
     const praise = t(`praise.${1 + (problem.seed % 5)}` as Key);
     const line = h('div', { class: 'nl-box is-celebrate' });
     const steps = countUpSteps(problem.due, problem.paid);
-    const next = h('button', { type: 'button', class: 'btn btn-go', 'data-testid': 'next-customer', onclick: done }, nextLabel, h('span', { html: icon('next', 22) }));
+    const next = h('button', { type: 'button', class: 'btn btn-go', 'data-testid': 'next-customer', onclick: done }, nextLabel, h('span', { class: 'ico', html: icon('next', 22) }));
     fb.className = 'feedback is-ok';
     const parts: (Node | null)[] = [
         h('p', { class: 'fb-main' }, '🎉 ', praise),
@@ -692,7 +692,7 @@ registerScreen('play', (root, rawParams) => {
       line.innerHTML = numberLineSvg(problem.due, problem.paid, { revealed, label: t('nl.label') });
     };
     drawLine(0);
-    const next = h('button', { type: 'button', class: 'btn btn-go', 'data-testid': 'next-customer', onclick: done }, nextLabel, h('span', { html: icon('next', 22) }));
+    const next = h('button', { type: 'button', class: 'btn btn-go', 'data-testid': 'next-customer', onclick: done }, nextLabel, h('span', { class: 'ico', html: icon('next', 22) }));
     fb.className = 'feedback is-solution';
     fb.replaceChildren(
       h('p', { class: 'fb-main' }, msgs.join(' ')),

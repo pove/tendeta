@@ -61,7 +61,7 @@ export function shoppingPhase(ctx: {
     const basketList = h('ul', { class: 'basket-list', 'aria-live': 'polite' });
     const basketInfo = h('p', { class: 'basket-info' });
     const needMore = h('p', { class: 'basket-need', 'aria-live': 'polite' });
-    const checkout = h('button', { type: 'button', class: 'btn btn-go', 'data-testid': 'checkout' }, t('shop.checkout'), h('span', { html: icon('next', 22) }));
+    const checkout = h('button', { type: 'button', class: 'btn btn-go', 'data-testid': 'checkout' }, t('shop.checkout'), h('span', { class: 'ico', html: icon('next', 22) }));
     const shelf = h('div', { class: 'shelf' });
     const cards = new Map<string, HTMLButtonElement>();
 
@@ -197,7 +197,7 @@ export function shoppingPhase(ctx: {
       'div',
       { class: 'shop-view' },
       h('section', { class: 'shelf-wrap', 'aria-label': t('shop.shelf') }, h('h2', { class: 'panel-title' }, scenario.kind === 'table' ? t('shop.titleTable') : t('shop.titleBasket')), shelf),
-      h('aside', { class: 'basket', 'aria-label': t('shop.basket') }, h('h2', { class: 'panel-title' }, h('span', { html: icon('basket', 22) }), t('shop.basket')), basketList, basketInfo, needMore, checkout),
+      h('aside', { class: 'basket', 'aria-label': t('shop.basket') }, h('h2', { class: 'panel-title' }, h('span', { class: 'ico', html: icon('basket', 22) }), t('shop.basket')), basketList, basketInfo, needMore, checkout),
     );
     main.replaceChildren(view);
     render();

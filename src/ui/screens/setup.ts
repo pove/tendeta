@@ -200,7 +200,7 @@ registerScreen('setup', (root) => {
         h('section', { class: 'setup-step' }, h('h2', { class: 'step-title' }, h('span', { class: 'step-n' }, '2'), t('setup.how')), modeGroup, lengthBox),
         h('section', { class: 'setup-step' }, h('h2', { class: 'step-title' }, h('span', { class: 'step-n' }, '3'), t('setup.level')), levelGroup, levelInfo),
         h('section', { class: 'setup-step' }, h('h2', { class: 'step-title' }, h('span', { class: 'step-n' }, '4'), t('setup.method')), methodGroup),
-        h('div', { class: 'setup-go' }, h('button', { type: 'button', class: 'btn btn-go btn-xl', 'data-testid': 'start', onclick: start }, t('setup.start'), h('span', { html: icon('next', 26) }))),
+        h('div', { class: 'setup-go' }, h('button', { type: 'button', class: 'btn btn-go btn-xl', 'data-testid': 'start', onclick: start }, t('setup.start'), h('span', { class: 'ico', html: icon('next', 26) }))),
       ),
     ),
   );

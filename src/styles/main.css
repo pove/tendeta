@@ -139,6 +139,9 @@ img, svg { max-width: 100%; }
 .btn:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 rgba(43, 35, 64, 0.18); }
 .btn:disabled { opacity: 0.5; box-shadow: none; }
 .btn .icon { flex: none; }
+/* Icon wrappers: centre the SVG instead of sitting it on the text baseline. */
+.ico { display: inline-flex; align-items: center; justify-content: center; flex: none; line-height: 0; }
+.ico > .icon { display: block; }
 .btn-go { background: var(--blau); color: #fff; }
 .btn-go:hover:not(:disabled) { background: var(--blau-fosc); }
 .btn-ghost { background: var(--paper); color: var(--tinta); border-color: var(--line); }

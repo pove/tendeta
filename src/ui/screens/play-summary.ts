@@ -73,10 +73,10 @@ export function showSummary(opts: {
         go('play', { config: { ...config, mode }, length: opts.length });
       },
     },
-    h('span', { html: icon('replay', 22) }),
+    h('span', { class: 'ico', html: icon('replay', 22) }),
     opts.guided ? t('summary.continue') : t('summary.again'),
   );
-  const decorate = h('button', { type: 'button', class: 'btn btn-ghost', 'data-testid': 'go-shop', onclick: () => go('shop') }, h('span', { html: icon('sticker', 22) }), t('summary.decorate'));
+  const decorate = h('button', { type: 'button', class: 'btn btn-ghost', 'data-testid': 'go-shop', onclick: () => go('shop') }, h('span', { class: 'ico', html: icon('sticker', 22) }), t('summary.decorate'));
   const change = h('button', { type: 'button', class: 'btn btn-ghost', onclick: () => go('setup') }, t('summary.change'));
 
   const card = h(
