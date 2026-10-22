@@ -8,7 +8,7 @@ import { go, refresh, registerScreen, topbar } from '../app';
 import { openModal, toast } from '../components/modal';
 import { h } from '../dom';
 import { icon } from '../svg/icons';
-import { printSheets, printSummary } from './printables';
+import { printSheets, printSummary, type MoneySize } from './printables';
 
 type Tab = 'stats' | 'settings' | 'sheets' | 'data';
 
@@ -213,6 +213,12 @@ function sheetsTab(): HTMLElement {
   const withTotal = h('input', { type: 'checkbox', id: 'sheet-total', class: 'check' });
   const withMoney = h('input', { type: 'checkbox', id: 'sheet-money', class: 'check', checked: true });
   const withSolutions = h('input', { type: 'checkbox', id: 'sheet-solutions', class: 'check', checked: true });
+  const moneySize = h(
+    'select',
+    { class: 'select', id: 'sheet-money-size' },
+    h('option', { value: 'classroom' }, t('sheets.sizeClassroom')),
+    h('option', { value: 'real' }, t('sheets.sizeReal')),
+  );
   const field = (id: string, label: string, control: HTMLElement): HTMLElement => h('div', { class: 'setting' }, h('label', { for: id, class: 'setting-label' }, label), control);
   const check = (id: string, label: string, control: HTMLElement): HTMLElement => h('label', { class: 'check-row', for: id }, control, h('span', null, label));
   return h(
@@ -224,6 +230,7 @@ function sheetsTab(): HTMLElement {
     field('sheet-count', t('sheets.count'), count),
     check('sheet-total', t('sheets.blankTotal'), withTotal),
     check('sheet-money', t('sheets.money'), withMoney),
+    field('sheet-money-size', t('sheets.moneySize'), moneySize),
     check('sheet-solutions', t('sheets.solutions'), withSolutions),
     h(
       'button',
@@ -239,6 +246,7 @@ function sheetsTab(): HTMLElement {
             count: Number(count.value),
             blankTotal: withTotal.checked,
             money: withMoney.checked,
+            moneySize: moneySize.value as MoneySize,
             solutions: withSolutions.checked,
           }),
       },

@@ -9,9 +9,31 @@ import { getLevel, getScenario } from '../../data';
 import { L, t } from '../../i18n';
 import type { Profile } from '../../state/store';
 import { pieceElement } from '../components/moneytray';
+import { fromHTML } from '../dom';
+import { isBill, pieceSizeMm, pieceSvg } from '../svg/money';
 import { itemDetail, itemTitle, promoTitle } from '../components/ticket';
 import { h } from '../dom';
 import { statsBlock } from './adult';
+
+export type MoneySize = 'classroom' | 'real';
+
+/**
+ * Print scale of the cut-out money. «Classroom» fits two bills per row on A4
+ * and makes the small coins a little bigger so they are easy to cut out.
+ */
+const PRINT_SCALE: Record<MoneySize, { bill: number; coin: number }> = {
+  classroom: { bill: 0.6, coin: 1.2 },
+  real: { bill: 1, coin: 1 },
+};
+
+/** A piece sized in millimetres, for printing. */
+function printedPiece(value: number, size: MoneySize): HTMLElement {
+  const { w, h: hh } = pieceSizeMm(value);
+  const k = isBill(value) ? PRINT_SCALE[size].bill : PRINT_SCALE[size].coin;
+  const el = h('span', { class: `piece ${isBill(value) ? 'is-bill' : 'is-coin'}`, style: `--w:${(w * k).toFixed(1)}mm;--h:${(hh * k).toFixed(1)}mm` });
+  el.appendChild(fromHTML(pieceSvg(value)));
+  return el;
+}
 
 /**
  * Printable worksheets built from the same problem generator: tickets to play
@@ -65,7 +87,7 @@ function paperTicket(p: Problem, n: number, shopName: string, blankTotal: boolea
   );
 }
 
-export function printSheets(opts: { scenarioId: string; level: LevelId; count: number; blankTotal: boolean; money: boolean; solutions: boolean }): void {
+export function printSheets(opts: { scenarioId: string; level: LevelId; count: number; blankTotal: boolean; money: boolean; moneySize?: MoneySize; solutions: boolean }): void {
   const scenario = getScenario(opts.scenarioId);
   const level = getLevel(opts.level);
   const rng = createRng();
@@ -108,14 +130,19 @@ export function printSheets(opts: { scenarioId: string; level: LevelId; count: n
     );
   }
   if (opts.money) {
-    const usable = [...COINS, ...BILLS].filter((v) => level.money.includes(v) || level.pay.pieces.includes(v));
+    const size = opts.moneySize ?? 'classroom';
+    const usable = [...BILLS, ...COINS].filter((v) => level.money.includes(v) || level.pay.pieces.includes(v)).sort((a, b) => b - a);
+    const cut = (v: number): HTMLElement => h('span', { class: `cut ${isBill(v) ? 'cut-bill' : 'cut-coin'}` }, printedPiece(v, size));
+    const bills = usable.filter(isBill).flatMap((v) => Array.from({ length: 4 }, () => cut(v)));
+    const coins = usable.filter((v) => !isBill(v)).flatMap((v) => Array.from({ length: 6 }, () => cut(v)));
     pages.push(
       h(
         'section',
         { class: 'sheet-page money-page' },
         h('h2', null, t('sheets.moneyTitle')),
         h('p', { class: 'sheet-instructions' }, t('sheets.moneyHelp')),
-        h('div', { class: 'cut-money' }, ...usable.flatMap((v) => Array.from({ length: v >= 500 ? 3 : 4 }, () => h('span', { class: 'cut' }, pieceElement(v, v >= 500 ? 0.85 : 0.9))))),
+        bills.length ? h('div', { class: 'cut-money cut-bills' }, ...bills) : null,
+        coins.length ? h('div', { class: 'cut-money cut-coins' }, ...coins) : null,
       ),
     );
   }

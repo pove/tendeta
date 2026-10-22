@@ -189,3 +189,6 @@ El idioma del código fuemte es inglés. El principal de las claves, los element
   comprueba el orden, que no haya cortes y el contenido.
 - **Conteo más natural:** céntimos hasta el euro, después directamente a la decena y luego billetes
   (40,60 → 41 → 50 → 100 en lugar de 41 → 45 → 50 → 60 → 100).
+- **Dinero recortable a tamaño útil:** la plantilla para imprimir usa milímetros reales. Opción «tamaño aula»
+  (por defecto: billetes al 60 %, dos por fila en A4, 5 € = 72 × 37 mm; monedas un 20 % mayores que las reales para
+  recortarlas con facilidad) o «tamaño real». Las piezas dibujadas en los tiques de juego se mantienen pequeñas.

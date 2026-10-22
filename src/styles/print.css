@@ -1,6 +1,6 @@
 /* Printable worksheets and adult summary. */
 @media print {
-  @page { size: A4; margin: 12mm; }
+  @page { size: A4; margin: 10mm; }
   body { background: #fff !important; font-size: 11pt; }
   body.has-print > *:not(#print-root) { display: none !important; }
   body.has-print #print-root { display: block !important; }
@@ -29,6 +29,10 @@
 .solutions { columns: 2; column-gap: 8mm; font-size: 10.5pt; }
 .solutions li { break-inside: avoid; margin-bottom: 2mm; }
 .sol-count { color: #444; }
-.cut-money { display: flex; flex-wrap: wrap; gap: 3mm; align-items: center; }
-.cut { border: 1px dashed #999; padding: 1.5mm; display: inline-flex; }
+.cut-money { display: flex; flex-wrap: wrap; gap: 0; align-items: center; justify-content: flex-start; }
+.cut-bills { margin-bottom: 4mm; }
+/* Cutting guides: dashed lines touching each other, so one cut serves two pieces. */
+.cut { border: 0.3mm dashed #888; padding: 1.5mm; display: inline-flex; break-inside: avoid; margin: -0.15mm; }
+.cut-coin { border-radius: 2mm; }
+.money-page .piece svg { filter: none; }
 #print-root .stats-block .bars { border: 1px solid #999; }

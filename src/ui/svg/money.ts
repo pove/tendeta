@@ -46,6 +46,16 @@ export function isBill(value: Cents): boolean {
   return value >= 500;
 }
 
+/** Real-world size in millimetres (bills: width × height; coins: diameter). */
+export function pieceSizeMm(value: Cents): { w: number; h: number } {
+  if (isBill(value)) {
+    const b = BILLS[value]!;
+    return { w: b.w, h: b.h };
+  }
+  const d = COINS[value]!.d;
+  return { w: d, h: d };
+}
+
 /** Display size in CSS pixels for a piece, scale = px per mm. */
 export function pieceSize(value: Cents, scale = 0.8): { w: number; h: number } {
   if (isBill(value)) {
