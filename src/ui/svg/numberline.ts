@@ -12,6 +12,24 @@ export interface NumberLineOptions {
 }
 
 /**
+ * Solid arrowhead at (tx, ty) aligned with the end tangent of a quadratic
+ * curve whose control point is (cx, cy): the tangent there is tip − control.
+ */
+function arrowHead(cx: number, cy: number, tx: number, ty: number): string {
+  const len = Math.hypot(tx - cx, ty - cy);
+  const ux = (cx - tx) / len;
+  const uy = (cy - ty) / len;
+  const size = 13;
+  const spread = (28 * Math.PI) / 180;
+  const wing = (a: number): string => {
+    const x = tx + size * (ux * Math.cos(a) - uy * Math.sin(a));
+    const y = ty + size * (ux * Math.sin(a) + uy * Math.cos(a));
+    return `${x.toFixed(1)} ${y.toFixed(1)}`;
+  };
+  return `M${tx} ${ty} L${wing(spread)} L${wing(-spread)} Z`;
+}
+
+/**
  * «Empty number line» with evenly spaced points and arcs labelled with the
  * jump (+10 c, +50 c, +2 €…). Even spacing keeps small jumps readable.
  */
@@ -41,8 +59,8 @@ export function numberLineSvg(price: Cents, paid: Cents, opts: NumberLineOptions
     const mid = (x1 + x2) / 2;
     const shown = i < opts.revealed;
     parts.push(`<g class="nl-jump ${shown ? 'is-shown' : 'is-hidden'}" data-i="${i}">
-      <path d="M${x1} ${y - 10} Q ${mid} ${y - 70} ${x2} ${y - 10}" class="nl-arc"/>
-      <path d="M${x2 - 9} ${y - 20} L${x2} ${y - 10} L${x2 - 11} ${y - 8}" class="nl-arrow"/>
+      <path d="M${x1} ${y - 10} Q ${mid} ${y - 70} ${x2 - 3} ${y - 13}" class="nl-arc"/>
+      <path d="${arrowHead(mid, y - 70, x2, y - 10)}" class="nl-arrow"/>
       <rect x="${mid - 44}" y="${y - 80}" width="88" height="32" rx="16" class="nl-badge"/>
       <text x="${mid}" y="${y - 57}" text-anchor="middle" class="nl-add">${shown ? '+' + esc(formatShort(s.add)) : '?'}</text>
     </g>`);

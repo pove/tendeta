@@ -74,6 +74,8 @@
   "play.exitYes": "Eixir",
   "play.exitNo": "Continuar jugant",
   "play.givesYou": "El client et dona:",
+  "play.toPay": "Cal cobrar:",
+  "play.toPayShare": "Cobra a esta persona:",
   "play.hello": "Hola! Volia açò, per favor.",
   "play.helloTable": "Bones! Som {people} a la taula. El compte, per favor.",
   "play.scanning": "Passant els productes per la caixa…",

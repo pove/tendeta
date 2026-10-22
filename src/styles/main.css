@@ -434,6 +434,8 @@ img, svg { max-width: 100%; }
 .given:empty { display: none; }
 .given.is-in { animation: pop 0.4s ease; }
 .given-label { font-weight: 700; }
+.given-due { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding-bottom: 8px; border-bottom: 2px dashed var(--fusta-fosc); font-weight: 700; }
+.given-due strong { font-size: 1.35rem; }
 .given-pieces { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .given-total { font-size: 1.35rem; font-weight: 700; }
 
@@ -592,11 +594,11 @@ img, svg { max-width: 100%; }
 .nl-start .nl-label { fill: var(--roig); }
 .nl-end .nl-label { fill: var(--verd); }
 .nl-arc { fill: none; stroke: var(--taronja-fosc); stroke-width: 3; stroke-linecap: round; }
-.nl-arrow { fill: none; stroke: var(--taronja-fosc); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.nl-arrow { fill: var(--taronja-fosc); stroke: var(--taronja-fosc); stroke-width: 2; stroke-linejoin: round; }
 .nl-badge { fill: var(--groc-clar); stroke: var(--taronja); stroke-width: 2; }
 .nl-add { font: 700 20px var(--font); fill: var(--tinta); }
 .nl-jump.is-hidden .nl-arc { stroke-dasharray: 5 7; stroke: var(--tinta-suau); opacity: 0.5; }
-.nl-jump.is-hidden .nl-arrow { opacity: 0.4; stroke: var(--tinta-suau); }
+.nl-jump.is-hidden .nl-arrow { opacity: 0.4; stroke: var(--tinta-suau); fill: var(--tinta-suau); }
 .nl-jump.is-hidden .nl-badge { fill: #fff; stroke: var(--line); }
 .nl-jump.is-shown { animation: fade-up 0.35s ease; }
 .nl-point.is-hidden .nl-label { fill: var(--tinta-suau); }

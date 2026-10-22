@@ -10,7 +10,7 @@ import type { LevelDef, Mode, Problem, Scenario } from '../../core/types';
 import { getLevel, getScenario } from '../../data';
 import { L, getLang, randomCashier, t, tc, type Key } from '../../i18n';
 import { play as sound } from '../../services/sound';
-import { say, saySequence, stopSpeaking } from '../../services/speech';
+import { say, saySequence, stopSpeaking, voiceEnabled } from '../../services/speech';
 import * as wellbeing from '../../services/wellbeing';
 import { store, type GameConfig, type LogEntry } from '../../state/store';
 import { go, iconButton, registerScreen, topbar } from '../app';
@@ -166,7 +166,9 @@ registerScreen('play', (root, rawParams) => {
   }
 
   function showGiven(problem: Problem): void {
+    // The amount to charge is repeated here so it stays in view next to the money.
     givenSlot.replaceChildren(
+      h('p', { class: 'given-due' }, h('span', null, problem.split ? t('play.toPayShare') : t('play.toPay')), h('strong', null, formatEuro(problem.due))),
       h('p', { class: 'given-label' }, t('play.givesYou')),
       h('div', { class: 'given-pieces' }, ...problem.payment.map((p) => pieceElement(p, 0.8))),
       h('p', { class: 'given-total', 'data-testid': 'paid' }, formatEuro(problem.paid)),
@@ -184,7 +186,9 @@ registerScreen('play', (root, rawParams) => {
   function focusTill(): void {
     if (!window.matchMedia('(max-width: 859px)').matches) return;
     const target = givenSlot.classList.contains('is-in') ? givenSlot : register;
-    target.scrollIntoView({ block: 'start', behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+    // Measure the sticky header: on phones it wraps onto two rows.
+    const top = target.getBoundingClientRect().top + window.scrollY - header.offsetHeight - 8;
+    window.scrollTo({ top: Math.max(0, top), behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
   }
 
   // ---------- Round loop ----------
@@ -278,8 +282,12 @@ registerScreen('play', (root, rawParams) => {
     registerPanel(h('div', { class: 'register-wait' }, h('p', null, t('play.scanning')), h('div', { class: 'scanner', 'aria-hidden': 'true' })));
     await wait(450);
     await tv.scan(prefersReducedMotion());
-    // Wait until the total has been said before the customer pays.
-    if (!opts.hideTotal) await say(totalSpeech(problem));
+    // Leave time to read (or hear) the final total before the customer pays
+    // and, on phones, before the screen scrolls down to the till.
+    if (!opts.hideTotal) {
+      await say(totalSpeech(problem));
+      if (!voiceEnabled()) await wait(1200);
+    }
     return tv;
   }
 

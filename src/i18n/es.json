@@ -74,6 +74,8 @@
   "play.exitYes": "Salir",
   "play.exitNo": "Seguir jugando",
   "play.givesYou": "El cliente te da:",
+  "play.toPay": "Hay que cobrar:",
+  "play.toPayShare": "Cobra a esta persona:",
   "play.hello": "¡Hola! Quería esto, por favor.",
   "play.helloTable": "¡Buenas! Somos {people} en la mesa. La cuenta, por favor.",
   "play.scanning": "Pasando los productos por la caja…",
