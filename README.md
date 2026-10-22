@@ -66,16 +66,16 @@ npx playwright install chromium
 npm run e2e
 ```
 
-## Despliegue (GitHub Pages)
+## Integración continua y publicación
 
-El sitio es estático y usa rutas relativas (`base: './'`), así que funciona en cualquier subcarpeta.
+- **`.github/workflows/ci.yml`** (pull requests y ramas): comprueba tipos, pasa los tests unitarios, construye la
+  PWA y verifica que existen el service worker, el manifiesto y los iconos, y ejecuta los tests e2e en móvil y tableta.
+- **`.github/workflows/deploy.yml`** (cada `push` a `main` o lanzamiento manual): reutiliza la validación anterior y,
+  si todo pasa, publica `dist/` en **GitHub Pages**.
 
-1. Sube el repositorio a GitHub.
-2. En **Settings → Pages**, elige **GitHub Actions** como origen.
-3. Cada `push` a `main` ejecuta `.github/workflows/deploy.yml`: pasa los tests, construye y publica `dist/`.
-
-Para otro servidor basta con copiar el contenido de `dist/` tras `npm run build`. Conviene servir `sw.js`
-sin caché larga para que las actualizaciones lleguen enseguida.
+La PWA se publica en `https://pove.github.io/tendeta/` y se puede instalar desde el navegador. Usa rutas relativas
+(`base: './'`), así que funciona en cualquier subcarpeta; para otro servidor basta con copiar `dist/` tras
+`npm run build` (conviene servir `sw.js` sin caché larga para que las actualizaciones lleguen enseguida).
 
 ## Añadir una tienda nueva
 
