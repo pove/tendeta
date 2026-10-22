@@ -673,6 +673,7 @@ img, svg { max-width: 100%; }
 .summary-stats { list-style: none; margin: 0; padding: 0; display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
 .summary-stats li { display: grid; padding: 10px 16px; background: var(--paper-2); border-radius: 14px; min-width: 120px; }
 .summary-stats strong { font-size: 1.6rem; }
+.summary-stats .is-bonus { background: var(--groc-clar); }
 .summary-dots { list-style: none; margin: 0; padding: 0; display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
 .summary-dots li { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; background: var(--line); }
 .summary-dots .is-ok { background: var(--verd); color: #fff; }
@@ -693,12 +694,13 @@ img, svg { max-width: 100%; }
   border-radius: 50%;
   border: 2px dashed rgba(30, 90, 168, 0.45);
   background: rgba(255, 255, 255, 0.5);
-  font-size: clamp(1.5rem, 5vw, 2.4rem);
+  font-size: clamp(1.8rem, 6vw, 3rem);
   color: var(--blau);
   display: grid;
   place-items: center;
   padding: 0;
 }
+.slot:not(.is-filled):not(.is-ready) { opacity: 0.5; font-size: 1.4rem; }
 .slot.is-filled { border: 0; background: transparent; filter: drop-shadow(0 3px 2px rgba(0, 0, 0, 0.2)); }
 .slot.is-ready:not(.is-filled) { border-color: var(--taronja); background: var(--groc-clar); animation: glow 1.4s infinite; }
 .sticker-tray { display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 8px; }

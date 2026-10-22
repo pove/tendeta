@@ -68,6 +68,7 @@ registerScreen('shop', (root) => {
               for (const [k, v] of Object.entries(placed)) if (v === selected) delete placed[k];
               placed[String(i)] = selected;
               selected = null;
+              status.textContent = '';
               sound('star');
             } else if (st) {
               delete placed[String(i)];

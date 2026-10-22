@@ -677,6 +677,7 @@ registerScreen('play', (root, rawParams) => {
       elapsedMs: Date.now() - roundStart,
       showTime: timerOn,
       guided,
+      scorePieces: level.minPieces || settings.expert,
       then: params.then,
       length: params.length,
     });

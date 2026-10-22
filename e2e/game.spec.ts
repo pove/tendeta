@@ -66,6 +66,7 @@ test.describe('Tendeta', () => {
       await page.getByTestId('next-customer').click();
     }
     await expect(page.getByTestId('summary')).toBeVisible();
+    await expect(page.locator('.summary-stats .is-bonus')).toContainText('5');
   });
 
   test('free shop: the player fills the basket, pays and gives change', async ({ page }) => {

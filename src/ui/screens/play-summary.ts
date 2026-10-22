@@ -30,6 +30,7 @@ export function showSummary(opts: {
   elapsedMs: number;
   showTime: boolean;
   guided: boolean;
+  scorePieces?: boolean;
   then?: Mode;
   length?: number;
 }): void {
@@ -38,6 +39,9 @@ export function showSummary(opts: {
   const stars = starsFor(results);
   const first = results.filter((r) => r.firstTry).length;
   const solved = results.filter((r) => r.solved).length;
+  // Extra points: change returned with the minimum number of pieces (level 6 / expert mode).
+  const perfect = results.filter((r) => r.optimal && r.firstTry).length;
+  const showPerfect = opts.scorePieces && results.some((r) => r.optimal !== undefined);
 
   // Stickers follow a fixed order (no random rewards).
   let sticker: (typeof STICKERS)[number] | undefined;
@@ -85,6 +89,7 @@ export function showSummary(opts: {
       { class: 'summary-stats' },
       h('li', null, h('strong', null, `${first}/${results.length}`), h('span', null, t('summary.firstTry'))),
       h('li', null, h('strong', null, `${solved}/${results.length}`), h('span', null, t('summary.solved'))),
+      showPerfect ? h('li', { class: 'is-bonus' }, h('strong', null, `⭐ ${perfect}`), h('span', null, t('summary.perfect'))) : null,
       opts.showTime ? h('li', null, h('strong', null, timeText), h('span', null, t('summary.time'))) : null,
     ),
     h(
