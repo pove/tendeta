@@ -1,5 +1,5 @@
 import { initialAdaptive, updateAdaptive, type AdaptiveState } from '../../core/adaptive';
-import { countUpPoints, countUpSteps } from '../../core/countup';
+import { countUpSteps } from '../../core/countup';
 import { checkChange, checkTotal, errorTypeOf, type AnswerCheck, type ErrorType } from '../../core/errors';
 import { estimateQuestion } from '../../core/estimate';
 import { generateProblem, type Focus } from '../../core/generator';
@@ -10,7 +10,7 @@ import type { LevelDef, Mode, Problem, Scenario } from '../../core/types';
 import { getLevel, getScenario } from '../../data';
 import { L, getLang, randomCashier, t, tc, type Key } from '../../i18n';
 import { play as sound } from '../../services/sound';
-import { say } from '../../services/speech';
+import { say, saySequence, stopSpeaking } from '../../services/speech';
 import * as wellbeing from '../../services/wellbeing';
 import { store, type GameConfig, type LogEntry } from '../../state/store';
 import { go, iconButton, registerScreen, topbar } from '../app';
@@ -109,7 +109,8 @@ registerScreen('play', (root, rawParams) => {
     store.updateSettings({ voice: !store.settings.voice });
     voiceBtn.innerHTML = icon(store.settings.voice ? 'voice' : 'voiceOff');
     voiceBtn.setAttribute('aria-pressed', String(store.settings.voice));
-    if (store.settings.voice) say(t('play.voiceOn'));
+    if (store.settings.voice) void say(t('play.voiceOn'), { interrupt: true });
+    else stopSpeaking();
   });
   voiceBtn.setAttribute('aria-pressed', String(settings.voice));
   const soundBtn = iconButton(settings.sound ? 'sound' : 'soundOff', t('play.sound'), () => {
@@ -237,6 +238,29 @@ registerScreen('play', (root, rawParams) => {
     return generateProblem(scenario, level, priceList, { tier: adaptive.tier, focus: guided ? null : focus, seed: rng.int(0, 2 ** 31) });
   }
 
+  // ---------- Spoken texts (amounts in words, never «7,00 €») ----------
+  const sp = (c: Cents): string => speakEuro(c, getLang());
+
+  function totalSpeech(problem: Problem): string {
+    let text = t('say.total', { amount: sp(problem.total) });
+    if (problem.split) text += ' ' + t('say.split', { people: problem.split.people, amount: sp(problem.split.share) });
+    return text;
+  }
+
+  function paysSpeech(problem: Problem): string {
+    return problem.trick ? t('say.paysTrick', { amount: sp(problem.paid) }) : t('say.pays', { amount: sp(problem.paid) });
+  }
+
+  /** «Contamos desde 7,40» · «Más 10 céntimos: 7,50» · … · «En total, le devuelves 12,60». */
+  function countUpPhrases(problem: Problem): string[] {
+    const steps = countUpSteps(problem.due, problem.paid);
+    return [
+      t('say.countFrom', { from: sp(problem.due) }),
+      ...steps.map((s) => t('say.step', { add: sp(s.add), to: sp(s.to) })),
+      t('say.change', { change: sp(problem.change) }),
+    ];
+  }
+
   async function presentProblem(problem: Problem, opts: { hideTotal: boolean }): Promise<TicketView> {
     setMood(problem.customerSeed, 'neutral');
     customerBox.classList.remove('enter');
@@ -244,14 +268,18 @@ registerScreen('play', (root, rawParams) => {
     customerBox.classList.add('enter');
     givenSlot.replaceChildren();
     givenSlot.classList.remove('is-in');
-    setBubble(problem.people > 1 ? t('play.helloTable', { people: problem.people }) : t('play.hello'));
+    const greeting = problem.people > 1 ? t('play.helloTable', { people: problem.people }) : t('play.hello');
+    setBubble(greeting);
+    // A new customer: whatever was being said is over.
+    void say(greeting, { interrupt: true });
     const tv = ticketView(problem, L(scenario.name), { hideTotal: opts.hideTotal });
     clear(ticketSlot);
     ticketSlot.appendChild(tv.el);
     registerPanel(h('div', { class: 'register-wait' }, h('p', null, t('play.scanning')), h('div', { class: 'scanner', 'aria-hidden': 'true' })));
     await wait(450);
     await tv.scan(prefersReducedMotion());
-    if (!opts.hideTotal) say(t('say.total', { amount: speakEuro(problem.due, getLang()) }));
+    // Wait until the total has been said before the customer pays.
+    if (!opts.hideTotal) await say(totalSpeech(problem));
     return tv;
   }
 
@@ -261,23 +289,28 @@ registerScreen('play', (root, rawParams) => {
     await presentProblem(problem, { hideTotal: false });
     showGiven(problem);
     setBubble(t('play.payWith', { amount: formatEuro(problem.paid) }));
+    await say(paysSpeech(problem));
     const steps = countUpSteps(problem.due, problem.paid);
     let revealed = 0;
     const lineBox = h('div', { class: 'nl-box' });
     const explain = h('p', { class: 'guided-explain', 'aria-live': 'polite' });
     const nextBtn = h('button', { type: 'button', class: 'btn btn-go', 'data-testid': 'guided-next' }, t('guided.nextStep'));
-    const render = (): void => {
-      lineBox.innerHTML = numberLineSvg(problem.due, problem.paid, { revealed, label: t('nl.label') });
-      if (revealed === 0) explain.textContent = t('guided.start', { price: formatEuro(problem.due), paid: formatEuro(problem.paid) });
-      else if (revealed <= steps.length) {
+    const explainWith = (fmt: (c: Cents) => string): string => {
+      let text = '';
+      if (revealed === 0) text = t('guided.start', { price: fmt(problem.due), paid: fmt(problem.paid) });
+      else {
         const s = steps[revealed - 1]!;
-        explain.textContent = t('guided.step', { from: formatEuro(s.from), to: formatEuro(s.to), add: formatEuro(s.add) });
+        text = t('guided.step', { from: fmt(s.from), to: fmt(s.to), add: fmt(s.add) });
       }
-      if (revealed === steps.length) {
-        explain.textContent += ' ' + t('guided.done', { change: formatEuro(problem.change) });
-        nextBtn.textContent = t('guided.yourTurn');
-      }
-      say(explain.textContent ?? '');
+      if (revealed === steps.length) text += ' ' + t('guided.done', { change: fmt(problem.change) });
+      return text;
+    };
+    const render = (first = false): void => {
+      lineBox.innerHTML = numberLineSvg(problem.due, problem.paid, { revealed, label: t('nl.label') });
+      explain.textContent = explainWith(formatEuro);
+      if (revealed === steps.length) nextBtn.textContent = t('guided.yourTurn');
+      // The first explanation is queued after «te pago con…»; later ones answer a click.
+      void say(explainWith(sp), { interrupt: !first });
     };
     registerPanel(
       h(
@@ -291,7 +324,7 @@ registerScreen('play', (root, rawParams) => {
         nextBtn,
       ),
     );
-    render();
+    render(true);
     await new Promise<void>((resolve) => {
       nextBtn.addEventListener('click', () => {
         if (revealed < steps.length) {
@@ -328,14 +361,15 @@ registerScreen('play', (root, rawParams) => {
       extra.totalOk = ok;
       if (!ok) errorTypes.push('total');
       tv.revealTotal();
-      say(t('say.total', { amount: speakEuro(problem.due, getLang()) }));
+      await say(totalSpeech(problem));
     }
 
     await wait(250);
     showGiven(problem);
     setBubble(problem.trick ? t('play.payWithTrick', { amount: formatEuro(problem.paid) }) : t('play.payWith', { amount: formatEuro(problem.paid) }));
-    say(t('say.pays', { amount: speakEuro(problem.paid, getLang()) }));
     sound('bill');
+    await say(paysSpeech(problem));
+    if (destroyed) return { firstTry: false, solved: false };
 
     if (estimationEnabled(level) && !guided) {
       const ok = await estimatePhase(problem);
@@ -395,17 +429,17 @@ registerScreen('play', (root, rawParams) => {
             fb.className = 'feedback is-ok';
             fb.textContent = t('total.ok');
             kp.setDisabled(true);
-            setTimeout(() => resolve(tries === 1), 900);
+            void say(t('total.ok'), { interrupt: true }).then(() => setTimeout(() => resolve(tries === 1), 300));
           } else if (tries < 2) {
             sound('oops');
             fb.className = 'feedback is-ko';
             fb.textContent = diffMessage(check) + ' ' + t('total.retry');
-            say(fb.textContent);
+            void say(diffMessage(check, sp) + ' ' + t('total.retry'), { interrupt: true });
             kp.clear();
           } else {
             fb.className = 'feedback is-ko';
             fb.textContent = t('total.reveal', { total: formatEuro(problem.total) });
-            say(fb.textContent);
+            void say(t('total.reveal', { total: sp(problem.total) }), { interrupt: true });
             kp.setDisabled(true);
             const cont = h('button', { type: 'button', class: 'btn btn-go', onclick: () => resolve(false) }, t('common.continue'));
             fb.appendChild(cont);
@@ -414,6 +448,7 @@ registerScreen('play', (root, rawParams) => {
         },
       });
       registerPanel(h('div', { class: 'answer' }, h('h2', { class: 'panel-title' }, t('total.title')), fb, kp.el));
+      void say(t('total.question'));
       if (window.matchMedia('(max-width: 859px)').matches) ticketSlot.scrollIntoView({ block: 'end', behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
       activeAnswer = kp;
     });
@@ -431,8 +466,9 @@ registerScreen('play', (root, rawParams) => {
         moreBtn.disabled = true;
         sound(ok ? 'success' : 'oops');
         fb.className = `feedback ${ok ? 'is-ok' : 'is-ko'}`;
-        fb.textContent = (ok ? t('estimate.ok') : t('estimate.ko')) + ' ' + (q.answerMore ? t('estimate.isMore', { amount }) : t('estimate.isLess', { amount }));
-        say(fb.textContent);
+        const verdict = (a: string): string => (ok ? t('estimate.ok') : t('estimate.ko')) + ' ' + (q.answerMore ? t('estimate.isMore', { amount: a }) : t('estimate.isLess', { amount: a }));
+        fb.textContent = verdict(amount);
+        void say(verdict(sp(q.threshold)), { interrupt: true });
         const cont = h('button', { type: 'button', class: 'btn btn-go', 'data-testid': 'estimate-continue', onclick: () => resolve(ok) }, t('estimate.now'));
         fb.appendChild(cont);
         cont.focus();
@@ -442,12 +478,12 @@ registerScreen('play', (root, rawParams) => {
       const question = t('estimate.question', { amount });
       setTimeout(focusTill, 50);
       registerPanel(h('div', { class: 'estimate' }, h('h2', { class: 'panel-title' }, t('estimate.title')), h('p', { class: 'estimate-q' }, question), h('div', { class: 'estimate-btns' }, less, moreBtn), fb));
-      say(question);
+      void say(t('estimate.question', { amount: sp(q.threshold) }));
     });
   }
 
-  function diffMessage(check: AnswerCheck): string {
-    const amount = formatEuro(Math.abs(check.diff));
+  function diffMessage(check: AnswerCheck, fmt: (c: Cents) => string = formatEuro): string {
+    const amount = fmt(Math.abs(check.diff));
     return check.diff > 0 ? t('fb.over', { amount }) : t('fb.under', { amount });
   }
 
@@ -486,18 +522,17 @@ registerScreen('play', (root, rawParams) => {
 
       const fb = h('div', { class: 'feedback', 'aria-live': 'assertive', 'data-testid': 'feedback' });
       const hintBox = h('div', { class: 'hint-box' });
+      const hintText = (fmt: (c: Cents) => string): string => {
+        const first = steps[0];
+        if (hintRevealed === 0) return t('hint.points', { price: fmt(problem.due), paid: fmt(problem.paid) });
+        return first ? t('hint.first', { from: fmt(first.from), to: fmt(first.to) }) : '';
+      };
       const renderHint = (): void => {
         if (hintRevealed < 0) {
           hintBox.replaceChildren();
           return;
         }
-        const first = steps[0];
-        const text =
-          hintRevealed === 0
-            ? t('hint.points', { price: formatEuro(problem.due), paid: formatEuro(problem.paid) })
-            : first
-              ? t('hint.first', { from: formatEuro(first.from), to: formatEuro(first.to) })
-              : '';
+        const text = hintText(formatEuro);
         hintBox.replaceChildren(
           h('p', { class: 'hint-text' }, '💡 ', text),
           h('div', { class: 'nl-box', html: numberLineSvg(problem.due, problem.paid, { revealed: Math.max(0, hintRevealed), showPoints: true, label: t('nl.label') }) }),
@@ -509,8 +544,7 @@ registerScreen('play', (root, rawParams) => {
         hintRevealed = Math.min(steps.length - 1, hintRevealed + 1);
         if (hintRevealed < 1 && steps.length > 1) hintRevealed = 1;
         renderHint();
-        const txt = hintBox.querySelector('.hint-text')?.textContent;
-        if (txt) say(txt);
+        void say(hintText(sp), { interrupt: true });
         if (hintRevealed >= steps.length - 1) hintBtn.disabled = true;
       });
       const showHintButton = (guided && scaffold >= 1) || offerHint;
@@ -566,7 +600,7 @@ registerScreen('play', (root, rawParams) => {
           const msgs = [diffMessage(check), ...tagMessages(check)];
           fb.className = 'feedback is-ko';
           fb.replaceChildren(h('p', { class: 'fb-main' }, msgs[0]!), ...msgs.slice(1).map((m) => h('p', { class: 'fb-tip' }, m)), h('p', { class: 'fb-tip' }, t('fb.tryAgain')));
-          say(msgs.join(' '));
+          void say([diffMessage(check, sp), ...tagMessages(check), t('fb.tryAgain')].join(' '), { interrupt: true });
           hintBtn.hidden = false;
           hintBtn.classList.add('is-glow');
           if ('clear' in answerUi && config.method === 'keypad') (answerUi as KeypadView).clear();
@@ -597,7 +631,8 @@ registerScreen('play', (root, rawParams) => {
       registerPanel(container);
       activeAnswer = answerUi;
       focusTill();
-      say(t('say.question'), { interrupt: false });
+      // Queued after «el cliente paga con…»: never cuts it.
+      void say(question);
     });
   }
 
@@ -605,7 +640,6 @@ registerScreen('play', (root, rawParams) => {
     sound('success');
     setMood(problem.customerSeed, 'happy');
     setBubble(t(`thanks.${1 + (problem.seed % 4)}` as Key));
-    const points = countUpPoints(problem.due, problem.paid);
     const praise = t(`praise.${1 + (problem.seed % 5)}` as Key);
     const line = h('div', { class: 'nl-box is-celebrate' });
     const steps = countUpSteps(problem.due, problem.paid);
@@ -619,36 +653,43 @@ registerScreen('play', (root, rawParams) => {
         next,
       ];
     fb.replaceChildren(...parts.filter((n): n is Node => n !== null));
-    // Count forward aloud: 7,40 … 7,50, 8, 10 and 20.
-    const spoken = points.map((p) => speakEuro(p, getLang())).join(', ');
-    say(`${praise} ${spoken}.`);
     let revealed = 0;
     const draw = (): void => {
       line.innerHTML = numberLineSvg(problem.due, problem.paid, { revealed, label: t('nl.label') });
     };
     draw();
-    const stepAnim = async (): Promise<void> => {
-      for (let i = 0; i < steps.length; i++) {
-        await wait(prefersReducedMotion() ? 0 : 420);
-        if (destroyed) return;
-        revealed = i + 1;
+    // Count forward aloud like a cashier, revealing each jump as it is said:
+    // «¡Muy bien!» · «Contamos desde 7,40» · «Más 10 céntimos: 7,50» · … · «En total, le devuelves 12,60».
+    const phrases = [praise, ...countUpPhrases(problem)];
+    if (extraMsg) phrases.push(extraMsg.replace(/^⭐\s*/u, ''));
+    const firstStep = 2;
+    void saySequence(
+      phrases,
+      (i) => {
+        if (destroyed || i < firstStep || i >= firstStep + steps.length) return;
+        revealed = i - firstStep + 1;
         draw();
         sound('coin');
-      }
-    };
-    void stepAnim();
+      },
+      { interrupt: true, silentDelayMs: prefersReducedMotion() ? 0 : 420 },
+    );
     next.focus({ preventScroll: true });
   }
 
   function showSolution(problem: Problem, fb: HTMLElement, check: AnswerCheck, nextLabel: string, done: () => void): void {
     const steps = countUpSteps(problem.due, problem.paid);
     const msgs = [diffMessage(check), ...tagMessages(check)];
+    const line = h('div', { class: 'nl-box' });
+    const drawLine = (revealed: number): void => {
+      line.innerHTML = numberLineSvg(problem.due, problem.paid, { revealed, label: t('nl.label') });
+    };
+    drawLine(0);
     const next = h('button', { type: 'button', class: 'btn btn-go', 'data-testid': 'next-customer', onclick: done }, nextLabel, h('span', { html: icon('next', 22) }));
     fb.className = 'feedback is-solution';
     fb.replaceChildren(
       h('p', { class: 'fb-main' }, msgs.join(' ')),
       h('p', { class: 'fb-tip' }, t('fb.solutionIntro')),
-      h('div', { class: 'nl-box', html: numberLineSvg(problem.due, problem.paid, { revealed: steps.length, label: t('nl.label') }) }),
+      line,
       h(
         'ol',
         { class: 'solution-steps' },
@@ -659,7 +700,17 @@ registerScreen('play', (root, rawParams) => {
       h('p', { class: 'fb-tip' }, t('fb.keepGoing')),
       next,
     );
-    say(`${msgs.join(' ')} ${t('fb.solution', { change: speakEuro(problem.change, getLang()) })}`);
+    // Explain aloud, revealing each jump of the line as it is said.
+    const phrases = [[diffMessage(check, sp), ...tagMessages(check)].join(' '), t('fb.solutionIntro'), ...countUpPhrases(problem)];
+    const firstStep = 3;
+    void saySequence(
+      phrases,
+      (i) => {
+        if (destroyed || i < firstStep || i >= firstStep + steps.length) return;
+        drawLine(i - firstStep + 1);
+      },
+      { interrupt: true, silentDelayMs: prefersReducedMotion() ? 0 : 420 },
+    );
     next.focus({ preventScroll: true });
   }
 

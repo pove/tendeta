@@ -32,7 +32,16 @@ function rawSteps(price: Cents, paid: Cents): CountStep[] {
     let target = paid;
     for (const m of LANDMARKS) {
       if (current % m !== 0) {
-        const next = Math.ceil(current / m) * m;
+        let next = Math.ceil(current / m) * m;
+        // In whole euros a cashier goes straight to the next ten (41 → 50,
+        // not 41 → 45 → 50) unless that would go past the amount paid.
+        const ten = Math.ceil(current / 1000) * 1000;
+        if (m === 500 && ten <= paid) next = ten;
+        // Likewise with bills: 20 → 50 → 100 rather than stopping at 40 or 60.
+        if (m === 2000) {
+          const round = current % 5000 !== 0 ? Math.ceil(current / 5000) * 5000 : Math.ceil((current + 1) / 10000) * 10000;
+          if (round <= paid) next = round;
+        }
         if (next <= paid) target = next;
         break;
       }

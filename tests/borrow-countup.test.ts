@@ -23,7 +23,17 @@ describe('count up (cashier strategy)', () => {
   });
   it('lets matching cents cancel out', () => {
     expect(countUpPoints(1505, 2005)).toEqual([1505, 2005]);
-    expect(countUpPoints(1350, 2050)).toEqual([1350, 1550, 2050]);
+    expect(countUpPoints(1350, 2050)).toEqual([1350, 2050]);
+  });
+  it('counts like a cashier: cents to the euro, then to the ten, then bills', () => {
+    expect(countUpPoints(4060, 10000)).toEqual([4060, 4100, 5000, 10000]);
+    expect(countUpPoints(850, 1000)).toEqual([850, 900, 1000]);
+    expect(countUpPoints(1320, 1500)).toEqual([1320, 1350, 1400, 1500]);
+    expect(countUpPoints(2347, 5000)).toEqual([2347, 2350, 2400, 3000, 5000]);
+    expect(countUpPoints(1600, 5000)).toEqual([1600, 2000, 5000]);
+    expect(countUpPoints(2000, 10000)).toEqual([2000, 5000, 10000]);
+    expect(countUpPoints(300, 500)).toEqual([300, 500]);
+    expect(countUpPoints(300, 1000)).toEqual([300, 1000]);
   });
   it('always sums the change exactly and moves forward', () => {
     const rng = createRng(42);

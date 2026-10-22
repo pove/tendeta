@@ -181,3 +181,11 @@ El idioma del código fuemte es inglés. El principal de las claves, los element
 - **Precios realistas por tienda:** cada escenario puede fijar un redondeo mínimo (`minStep`); restaurante y horchatería
   usan múltiplos de 5 céntimos incluso en los niveles 5 y 6.
 
+- **Lectura en voz alta revisada:** las frases se encolan y nunca se cortan entre sí (solo se interrumpen cuando la
+  persona actúa: responde, pide pista o pasa al siguiente cliente). El juego espera a que se diga el total antes de
+  que el cliente pague. Al acertar o ver la solución se cuenta hacia delante en voz alta («Contamos desde 40 euros
+  con 60 céntimos» · «Más 40 céntimos, y llegamos a 41 euros» · … · «En total, el cambio es…») y cada salto de la
+  recta aparece justo cuando se nombra. Los importes se leen siempre en palabras. Un test e2e con una voz simulada
+  comprueba el orden, que no haya cortes y el contenido.
+- **Conteo más natural:** céntimos hasta el euro, después directamente a la decena y luego billetes
+  (40,60 → 41 → 50 → 100 en lugar de 41 → 45 → 50 → 60 → 100).

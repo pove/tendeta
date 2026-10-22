@@ -144,7 +144,7 @@ export function shoppingPhase(ctx: {
       if (line) line.qty++;
       else basket.set(e.key, { entry: e, qty: 1, grams: e.product.unit === 'kg' ? 1000 : undefined });
       sound('tap');
-      say(entryTitle(e));
+      void say(entryTitle(e), { interrupt: true });
       render();
     };
 
@@ -198,7 +198,7 @@ export function shoppingPhase(ctx: {
     );
     main.replaceChildren(view);
     render();
-    say(scenario.kind === 'table' ? t('shop.titleTable') : t('shop.titleBasket'));
+    void say(scenario.kind === 'table' ? t('shop.titleTable') : t('shop.titleBasket'), { interrupt: true });
   });
 
   function choosePayment(candidates: PaymentCandidate[], due: Cents, onPick: (c: PaymentCandidate) => void): void {

@@ -106,5 +106,5 @@ export function showSummary(opts: {
   opts.root.replaceChildren(h('div', { class: 'summary-wrap' }, card));
   (card.querySelector('.summary-title') as HTMLElement).focus();
   sound('star');
-  say(`${title} ${t('summary.stars', { n: stars })}`);
+  void say(`${title} ${t('summary.stars', { n: stars })}`, { interrupt: true });
 }
